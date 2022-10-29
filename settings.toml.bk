@@ -1,0 +1,9 @@
+IPADDR_PORT = ""                        # 127.0.0.1:8000
+DATABASE = ""                           # database_file.db
+CONTENTS_ROOT = ""                      # root_directory/public/file
+PDF_THUMBNAIL_NAME = ""                 # pdf.png
+PDF_THUMBNAIL_LOCATION = ""             # root_directory/public
+VIDEO_THUMBNAIL_NAME = ""               # video.png
+VIDEO_THUMBNAIL_LOCATION = ""           # root_directory/public
+AUDI_THUMBNAIL_NAME = ""                # audio.png
+AUDIO_THUMBNAIL_LOCATION = ""           # root_directory/public

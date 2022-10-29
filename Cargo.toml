@@ -1,0 +1,43 @@
+[package]
+name = "new"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-web = "*"
+actix-multipart = "*"
+futures-util = "*"
+rand = "*"
+rusqlite = "*"
+config = "*"
+lazy_static = "*"
+base64 = "*"
+serde = { version = "*", features = ["derive"] }
+
+
+[profile.dev]
+opt-level = 0
+debug = true
+split-debuginfo = "packed"
+debug-assertions = true
+overflow-checks = true
+lto = "off"
+panic = 'unwind'
+incremental = true
+codegen-units = 256
+rpath = false
+
+
+[profile.release]
+opt-level = 3
+debug = false
+split-debuginfo = "off"
+debug-assertions = false
+overflow-checks = false
+lto = 'fat'
+panic = 'unwind'
+incremental = true
+codegen-units = 1
+rpath = false
