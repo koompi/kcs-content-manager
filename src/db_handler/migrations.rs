@@ -1,19 +1,26 @@
-use super::{get_value_mutex_safe, Grades, Subjects, fs, Path, Connection};
+use super::{fs, get_value_mutex_safe, Connection, Grades, Path, Subjects};
 
 pub fn run_init_migration() {
     let database = get_value_mutex_safe("DATABASE");
+    let init_username: String = get_value_mutex_safe("ROOT_INITIAL_USERNAME");
+    let init_password: String = bcrypt::hash(
+        get_value_mutex_safe("ROOT_INITIAL_PASSWORD"),
+        bcrypt::DEFAULT_COST,
+    )
+    .unwrap();
 
     if !std::path::Path::new(&database).exists() {
-        Connection::open(&database).unwrap().execute_batch(
+        Connection::open(&database).unwrap().execute_batch(format!(
 "BEGIN;
 CREATE TABLE tblContents (
     DisplayName VARCHAR(255), FileName NVARCHAR(100) NOT NULL PRIMARY KEY UNIQUE, Location VARCHAR(255), FileType CHARACTER(20), 
     Grade INT, Subject NVARCHAR(100), ThumbnailName NVARCHAR(100), ThumbnailLocation VARCHAR(255)
 );
 CREATE TABLE tblAdmins (DisplayName NVARCHAR(100), UserName NVARCHAR(100) NOT NULL PRIMARY KEY UNIQUE, 
-    PasswordHash NVARCHAR(100)
+    PasswordHash NVARCHAR(100), Role NVARCHAR(100) NOT NULL
 );
-COMMIT;").unwrap();
+INSERT INTO tblAdmins(DisplayName, UserName, PasswordHash, Role) VALUES('Root', '{}', '{}', 'Root');
+COMMIT;", init_username, init_password).as_str()).unwrap();
     }
 
     let root_path = get_value_mutex_safe("CONTENTS_ROOT");

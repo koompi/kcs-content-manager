@@ -7,3 +7,6 @@ VIDEO_THUMBNAIL_NAME = ""               # video.png
 VIDEO_THUMBNAIL_LOCATION = ""           # root_directory/public
 AUDI_THUMBNAIL_NAME = ""                # audio.png
 AUDIO_THUMBNAIL_LOCATION = ""           # root_directory/public
+ROOT_INITIAL_USERNAME = ""              # root
+ROOT_INITIAL_PASSWORD = ""              # 123
+DECRYPT_KEY = ""                        # secret_key_123

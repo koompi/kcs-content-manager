@@ -49,6 +49,16 @@ pub fn delete_from_tbl_contents(filename: &str, grade: &str, subject: &str) {
         .unwrap();
 }
 
+pub fn query_existence_of_file(filename: &str, grade: &str, subject: &str) -> bool {
+    let database = get_value_mutex_safe("DATABASE");
+    let connection = Connection::open(&database).unwrap();
+
+    let mut stmt = connection
+        .prepare("SELECT FileName FROM tblContents WHERE Filename=? AND Grade=? AND Subject=? LIMIT 1")
+        .unwrap();
+    stmt.exists(params![filename, grade, subject]).unwrap()
+}
+
 pub fn query_from_tbl_contents_with_grade_subject(grade: &str, subject: &str) -> Vec<FileGroup> {
     let database = get_value_mutex_safe("DATABASE");
     let connection = Connection::open(&database).unwrap();
@@ -86,18 +96,6 @@ pub fn query_all_from_tbl_contents() -> Vec<FileGroup> {
     let mut rows = stmt.query([]).unwrap();
 
     filter_rows_for_filegroup(&mut rows)
-}
-
-pub fn query_existence_of_file(filename: &str, grade: &str, subject: &str) -> bool {
-    let database = get_value_mutex_safe("DATABASE");
-    let connection = Connection::open(&database).unwrap();
-
-    let mut stmt = connection
-        .prepare("SELECT EXISTS(SELECT FileName FROM tblContents WHERE Filename=? AND Grade=? AND Subject=? LIMIT 1);")
-        .unwrap();
-    let mut rows = stmt.query(&[filename, grade, subject]).unwrap();
-
-    rows.next().unwrap().unwrap().get::<usize, u64>(0).unwrap() != 0
 }
 
 fn filter_rows_for_filegroup (rows: &mut Rows) -> Vec<FileGroup>{

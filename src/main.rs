@@ -3,11 +3,12 @@ mod db_handler;
 mod file_handler;
 mod file_property;
 mod tools;
+mod admins_handler;
 
 use actix_web::{App, HttpServer};
 use config::Config;
 use lazy_static::lazy_static;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use std::{collections::HashMap, fmt, str::FromStr, sync::Mutex};
 
 lazy_static! {
@@ -56,6 +57,7 @@ async fn main() -> std::io::Result<()> {
             .service(file_handler::query_api::query_all)
             .service(file_handler::query_api::query_by_grade)
             .service(file_handler::query_api::query_by_grade_subject)
+            .service(admins_handler::login_api::login)
     })
     .bind(&ip_addr_port)?;
     println!("Server running at: {}", &ip_addr_port);

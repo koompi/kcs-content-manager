@@ -7,3 +7,4 @@ use std::{fs, path::Path};
 
 pub mod migrations;
 pub mod tbl_contents_handler;
+pub mod tbl_admins_handler;
