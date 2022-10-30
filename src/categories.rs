@@ -205,12 +205,12 @@ impl FromStr for Grades {
 impl fmt::Display for Grades {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Grades::Grade1 => write!(f, "Grade_1"),
-            Grades::Grade2 => write!(f, "Grade_2"),
-            Grades::Grade3 => write!(f, "Grade_3"),
-            Grades::Grade4 => write!(f, "Grade_4"),
-            Grades::Grade5 => write!(f, "Grade_5"),
-            Grades::Grade6 => write!(f, "Grade_6"),
+            Grades::Grade1 => write!(f, "Grade1"),
+            Grades::Grade2 => write!(f, "Grade2"),
+            Grades::Grade3 => write!(f, "Grade3"),
+            Grades::Grade4 => write!(f, "Grade4"),
+            Grades::Grade5 => write!(f, "Grade5"),
+            Grades::Grade6 => write!(f, "Grade6"),
             Grades::None => write!(f, "None"),
         }
     }
