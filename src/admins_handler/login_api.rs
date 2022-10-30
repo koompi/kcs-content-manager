@@ -3,7 +3,7 @@ use super::{
     FromStr, HttpResponse, LoginModel, LoginRole,
 };
 
-#[post("/login")]
+#[post("/public/api/login")]
 pub async fn login(login_args: web::Json<LoginModel>) -> Result<HttpResponse, Error> {
     let username = &login_args.username.to_owned();
     let password = &login_args.password.to_owned();

@@ -3,7 +3,7 @@ use super::{
     FromStr, Grades, HttpRequest, HttpResponse, Subjects,
 };
 
-#[get("/query/{grade}/{subject}/")]
+#[get("/public/api/query/{grade}/{subject}/")]
 pub async fn query_by_grade_subject(req: HttpRequest) -> Result<HttpResponse, Error> {
     let grade = match Grades::from_str(&extract_url_arg(
         &req,

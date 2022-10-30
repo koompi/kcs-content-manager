@@ -2,7 +2,7 @@ use super::{
     error, extract_url_arg, db_handler::tbl_contents_handler, delete, web, Error, 
     FromStr, Grades, HttpRequest, HttpResponse, Subjects,
 };
-#[delete("/delete/{grade}/{subject}/")]
+#[delete("/private/api/delete/{grade}/{subject}/")]
 pub async fn delete(req: HttpRequest, filename: web::Json<String>) -> Result<HttpResponse, Error> {
     let grade = match Grades::from_str(&extract_url_arg(
         &req,

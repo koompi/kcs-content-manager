@@ -10,7 +10,7 @@ use std::{
     path,
 };
 
-#[post("/upload/{grade}/{subject}/{type}")]
+#[post("/private/api/upload/{grade}/{subject}/{type}")]
 pub async fn upload(req: HttpRequest, mut payload: Multipart) -> Result<HttpResponse, Error> {
     let mut file_group: FileGroup = FileGroup::init();
     let subject = match Subjects::from_str(&extract_url_arg(

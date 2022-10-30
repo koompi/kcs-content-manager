@@ -1,5 +1,5 @@
 use std::{str::FromStr, fmt};
-use actix_web::{error, post, web, Error, HttpResponse};
+use actix_web::{error, post, web, Error, HttpResponse, HttpRequest};
 use super::{
     Serialize, Deserialize, get_value_mutex_safe,
     db_handler::tbl_admins_handler
@@ -74,4 +74,35 @@ fn validate_password(username: &str, password: &str) -> bool {
     verify(password, &password_hash).unwrap()
 }
 
+fn extract_claims_from_token(token: &str) -> Result<Claims, (u32, String)> {
+    let mut validation = jsonwebtoken::Validation::new(jsonwebtoken::Algorithm::HS256);
+    validation.set_required_spec_claims(&["aud", "role", "iat", "exp"]);
+    validation.validate_exp = true;
+    let token_message = match jsonwebtoken::decode::<Claims>(
+        &token,
+        &jsonwebtoken::DecodingKey::from_secret(get_value_mutex_safe("DECRYPT_KEY").as_ref()),
+        &validation,
+    ) {
+        Ok(token) => Ok(token),
+        Err(_err) => Err((410, String::from("Token expired or incorrect"))),
+    }?;
+
+    Ok(token_message.claims)
+}
+
+fn validate_token(req: &HttpRequest) -> Result<LoginRole, (u32, String)> {
+    let token = match req.headers().get("AUTHORIZATION") {
+        Some(token) => Ok(token.to_str().unwrap().split_whitespace().last().unwrap()),
+        None => Err((410, "Token Missing".to_string())),
+    }?;
+
+    let claims = match extract_claims_from_token(&token) {
+        Ok(claims) => Ok(claims),
+        Err((code, message)) => Err((code, message)),
+    }?;
+
+    Ok(claims.role)
+}
+
 pub mod login_api;
+pub mod add_admin;
