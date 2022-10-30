@@ -1,19 +1,40 @@
-use std::{str::FromStr, fmt};
-use actix_web::{error, post, web, Error, HttpResponse, HttpRequest};
-use super::{
-    Serialize, Deserialize, get_value_mutex_safe,
-    db_handler::tbl_admins_handler
-};
+use super::{db_handler::tbl_admins_handler, get_value_mutex_safe, Deserialize, Serialize};
+use actix_web::{delete, error, post, put, web, Error, HttpRequest, HttpResponse, get};
 use bcrypt::verify;
+use std::{fmt, str::FromStr};
+
+#[derive(Serialize, Deserialize)]
+pub struct AdminsInfo {
+    display_name: Option<String>,
+    username: String,
+    password: Option<String>,
+    role: Option<LoginRole>,
+}
+
+impl AdminsInfo {
+    pub fn new(
+        display_name: Option<String>,
+        username: String,
+        password: Option<String>,
+        role: Option<LoginRole>,
+    ) -> Self {
+        Self {
+            display_name,
+            username,
+            password,
+            role
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize)]
 pub struct LoginModel {
     username: String,
-    password: String
+    password: String,
 }
 
-#[derive(Serialize, Deserialize)]
-enum LoginRole {
+#[derive(Serialize, Deserialize, Clone)]
+pub enum LoginRole {
     Admin,
     Root,
     None,
@@ -33,9 +54,7 @@ impl FromStr for LoginRole {
             "None" => Ok(LoginRole::None),
             "NONE" => Ok(LoginRole::None),
             "none" => Ok(LoginRole::None),
-            _ => Err(String::from(
-                "Mismatch role: Admin, Root"
-            )),
+            _ => Err(String::from("Mismatch role: Admin, Root")),
         }
     }
 }
@@ -59,6 +78,10 @@ pub struct Claims {
 }
 
 impl Claims {
+    pub fn get_aud(&self) -> &String {
+        &self.aud
+    }
+
     fn new(aud: String, role: LoginRole, iat: u64, exp: u64) -> Claims {
         Self {
             aud,
@@ -90,7 +113,7 @@ fn extract_claims_from_token(token: &str) -> Result<Claims, (u32, String)> {
     Ok(token_message.claims)
 }
 
-fn validate_token(req: &HttpRequest) -> Result<LoginRole, (u32, String)> {
+pub fn validate_token(req: &HttpRequest) -> Result<(LoginRole, Claims), (u32, String)> {
     let token = match req.headers().get("AUTHORIZATION") {
         Some(token) => Ok(token.to_str().unwrap().split_whitespace().last().unwrap()),
         None => Err((410, "Token Missing".to_string())),
@@ -101,8 +124,11 @@ fn validate_token(req: &HttpRequest) -> Result<LoginRole, (u32, String)> {
         Err((code, message)) => Err((code, message)),
     }?;
 
-    Ok(claims.role)
+    Ok((claims.role.to_owned(), claims))
 }
 
-pub mod login_api;
 pub mod add_admin;
+pub mod delete_admin;
+pub mod edit_admin;
+pub mod login_api;
+pub mod query_admin;
