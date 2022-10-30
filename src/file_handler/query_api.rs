@@ -3,7 +3,7 @@ use super::{
     FromStr, Grades, HttpRequest, HttpResponse, Subjects,
 };
 
-#[get("/public/api/query/{grade}/{subject}/")]
+#[get("/public/api/query/{grade}/{subject}")]
 pub async fn query_by_grade_subject(req: HttpRequest) -> Result<HttpResponse, Error> {
     let grade = match Grades::from_str(&extract_url_arg(
         &req,
@@ -26,7 +26,7 @@ pub async fn query_by_grade_subject(req: HttpRequest) -> Result<HttpResponse, Er
     Ok(HttpResponse::Ok().json(tbl_contents_handler::query_from_tbl_contents_with_grade_subject(&grade, &subject)))
 }
 
-#[get("/query/{grade}")]
+#[get("/public/api/query/{grade}")]
 pub async fn query_by_grade(req: HttpRequest) -> Result<HttpResponse, Error> {
     let grade = match Grades::from_str(&extract_url_arg(
         &req,
@@ -40,7 +40,7 @@ pub async fn query_by_grade(req: HttpRequest) -> Result<HttpResponse, Error> {
     Ok(HttpResponse::Ok().json(tbl_contents_handler::query_from_tbl_contents_with_grade(&grade)))
 }
 
-#[get("/query")]
+#[get("/public/api/query")]
 pub async fn query_all() -> Result<HttpResponse, Error> {
     Ok(HttpResponse::Ok().json(tbl_contents_handler::query_all_from_tbl_contents()))
 }

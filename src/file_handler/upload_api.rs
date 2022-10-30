@@ -1,6 +1,7 @@
 use super::{
-    error, extract_url_arg, post, db_handler, Error, Field, FileGroup, FileRole, FileType, FromStr,
-    Grades, HttpRequest, HttpResponse, Multipart, Subjects, Thumbnail, get_value_mutex_safe
+    db_handler, error, extract_url_arg, get_value_mutex_safe, post, tbl_admins_handler,
+    validate_token, Error, Field, FileGroup, FileRole, FileType, FromStr, Grades, HttpRequest,
+    HttpResponse, Multipart, Subjects, Thumbnail,
 };
 use crate::tools;
 use futures_util::stream::StreamExt as _;
@@ -12,30 +13,44 @@ use std::{
 
 #[post("/private/api/upload/{grade}/{subject}/{type}")]
 pub async fn upload(req: HttpRequest, mut payload: Multipart) -> Result<HttpResponse, Error> {
+    let (_, claims) = match validate_token(&req) {
+        Ok((role, claims)) => Ok((role, claims)),
+        Err((code, message)) => match code {
+            401 => Err(actix_web::error::ErrorGone(message)),
+            _ => Err(actix_web::error::ErrorUnauthorized(message)),
+        },
+    }?;
+
+    match tbl_admins_handler::query_existence_of_admin(claims.get_aud()) {
+        true => Ok(()),
+        false => Err(error::ErrorInternalServerError(String::from(
+            "This Root doesn't exists",
+        ))),
+    }?;
+
     let mut file_group: FileGroup = FileGroup::init();
     let subject = match Subjects::from_str(&extract_url_arg(
         &req,
         "subject",
         String::from("Check if Subject URL Arg is valid"),
     )?) {
-        Ok(subjects) => Ok(subjects),
+        Ok(subject) => Ok(subject),
         Err(err) => Err(error::ErrorInternalServerError(err)),
     }?;
-    // let subject_str = subject.to_string();
     let grade = match Grades::from_str(&extract_url_arg(
         &req,
         "grade",
         String::from("Check if Grade URL Arg is valid"),
     )?) {
-        Ok(subjects) => Ok(subjects),
+        Ok(grade) => Ok(grade),
         Err(err) => Err(error::ErrorInternalServerError(err)),
     }?;
-    // let grade_str = grade.to_string();
 
     while let Some(item) = payload.next().await {
         let mut field: Field = item?;
         let file_disposition = field.content_disposition();
-        let display_name = file_disposition.get_filename().unwrap().to_string();
+        let mut full_filename_split = file_disposition.get_filename().unwrap().split(".");
+        let display_name = full_filename_split.next().unwrap().to_string();
         let file_type = match FileType::from_str(&extract_url_arg(
             &req,
             "type",
@@ -44,12 +59,7 @@ pub async fn upload(req: HttpRequest, mut payload: Multipart) -> Result<HttpResp
             Ok(file_type) => Ok(file_type),
             Err(err) => Err(error::ErrorInternalServerError(err)),
         }?;
-        let file_extension = file_disposition
-            .get_filename()
-            .unwrap()
-            .split(".")
-            .last()
-            .unwrap();
+        let file_extension = full_filename_split.last().unwrap();
 
         let filename = tools::generate_random(
             100,
@@ -86,7 +96,7 @@ pub async fn upload(req: HttpRequest, mut payload: Multipart) -> Result<HttpResp
                     subject,
                     file_type,
                     default_thumbnail,
-                )
+                );
             }
             FileRole::ThumbnailFile => file_group.set_thumbnail(Thumbnail::new(filename, location)),
         };
