@@ -14,7 +14,7 @@ pub fn run_init_migration() {
 "BEGIN;
 CREATE TABLE tblContents (
     DisplayName VARCHAR(255), FileName NVARCHAR(100) NOT NULL PRIMARY KEY UNIQUE, Location VARCHAR(255), FileType CHARACTER(20), 
-    Grade INT, Subject NVARCHAR(100), ThumbnailName NVARCHAR(100), ThumbnailLocation VARCHAR(255)
+    Grade NVARCHAR(100), Subject NVARCHAR(100), ThumbnailName NVARCHAR(100), ThumbnailLocation VARCHAR(255)
 );
 CREATE TABLE tblAdmins (DisplayName NVARCHAR(100), UserName NVARCHAR(100) NOT NULL PRIMARY KEY UNIQUE, 
     PasswordHash NVARCHAR(100), Role NVARCHAR(100) NOT NULL

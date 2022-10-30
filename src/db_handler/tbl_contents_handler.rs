@@ -18,7 +18,6 @@ pub fn insert_into_contents_table(
     thumbnail_location: &str,
 ) {
     let database = get_value_mutex_safe("DATABASE");
-    let grade_num = grade.split("_").last().unwrap().parse::<u8>().unwrap();
 
     Connection::open(&database)
         .unwrap()
@@ -29,7 +28,7 @@ pub fn insert_into_contents_table(
                 filename,
                 location,
                 file_type,
-                grade_num,
+                grade,
                 subject,
                 thumbnail_name,
                 thumbnail_location
@@ -54,7 +53,9 @@ pub fn query_existence_of_file(filename: &str, grade: &str, subject: &str) -> bo
     let connection = Connection::open(&database).unwrap();
 
     let mut stmt = connection
-        .prepare("SELECT FileName FROM tblContents WHERE Filename=? AND Grade=? AND Subject=? LIMIT 1")
+        .prepare(
+            "SELECT FileName FROM tblContents WHERE Filename=? AND Grade=? AND Subject=? LIMIT 1",
+        )
         .unwrap();
     stmt.exists(params![filename, grade, subject]).unwrap()
 }
@@ -67,9 +68,12 @@ pub fn query_from_tbl_contents_with_grade_subject(grade: &str, subject: &str) ->
         .prepare("SELECT * FROM tblContents WHERE Grade=? AND Subject=?")
         .unwrap();
 
-    let mut rows = stmt.query(params![grade, subject]).unwrap();
+    let rows = stmt.query([grade, subject]);
 
-    filter_rows_for_filegroup(&mut rows)
+    match rows {
+        Ok(mut rows) => filter_rows_for_filegroup(&mut rows),
+        Err(_) => Vec::new(),
+    }
 }
 
 pub fn query_from_tbl_contents_with_grade(grade: &str) -> Vec<FileGroup> {
@@ -80,9 +84,12 @@ pub fn query_from_tbl_contents_with_grade(grade: &str) -> Vec<FileGroup> {
         .prepare("SELECT * FROM tblContents WHERE Grade=? ")
         .unwrap();
 
-    let mut rows = stmt.query(params![grade]).unwrap();
+    let rows = stmt.query([grade]);
 
-    filter_rows_for_filegroup(&mut rows)
+    match rows {
+        Ok(mut rows) => filter_rows_for_filegroup(&mut rows),
+        Err(_) => Vec::new(),
+    }
 }
 
 pub fn query_all_from_tbl_contents() -> Vec<FileGroup> {
@@ -90,15 +97,18 @@ pub fn query_all_from_tbl_contents() -> Vec<FileGroup> {
     let connection = Connection::open(&database).unwrap();
 
     let mut stmt = connection
-        .prepare("SELECT * FROM tblContents WHERE Grade=? AND Subject=?")
+        .prepare("SELECT * FROM tblContents")
         .unwrap();
 
-    let mut rows = stmt.query([]).unwrap();
+    let rows = stmt.query([]);
 
-    filter_rows_for_filegroup(&mut rows)
+    match rows {
+        Ok(mut rows) => filter_rows_for_filegroup(&mut rows),
+        Err(_) => Vec::new(),
+    }
 }
 
-fn filter_rows_for_filegroup (rows: &mut Rows) -> Vec<FileGroup>{
+fn filter_rows_for_filegroup(rows: &mut Rows) -> Vec<FileGroup> {
     let mut file_lists: Vec<FileGroup> = Vec::new();
     while let Some(row) = rows.next().unwrap() {
         let display_name: String = row.get(0).unwrap();
