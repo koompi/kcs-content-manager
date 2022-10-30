@@ -60,6 +60,7 @@ async fn main() -> std::io::Result<()> {
             .service(admins_handler::login_api::login)
             .service(admins_handler::add_admin::add_admin)
             .service(admins_handler::delete_admin::delete_admin)
+            .service(admins_handler::edit_admin::edit_admin)
             .service(admins_handler::query_admin::query_admin)
     })
     .bind(&ip_addr_port)?;
