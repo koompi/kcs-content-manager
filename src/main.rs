@@ -58,6 +58,9 @@ async fn main() -> std::io::Result<()> {
             .service(file_handler::query_api::query_by_grade)
             .service(file_handler::query_api::query_by_grade_subject)
             .service(admins_handler::login_api::login)
+            .service(admins_handler::add_admin::add_admin)
+            .service(admins_handler::delete_admin::delete_admin)
+            .service(admins_handler::query_admin::query_admin)
     })
     .bind(&ip_addr_port)?;
     println!("Server running at: {}", &ip_addr_port);
