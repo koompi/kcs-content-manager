@@ -40,11 +40,16 @@ pub async fn edit_admin(req: HttpRequest, arg: web::Json<AdminsInfo>) -> Result<
     if let None = arg.display_name  {
         arg.display_name = Some(tbl_admins_handler::get_display_name(&arg.username));
     }
+    
     if let None = arg.role {
         arg.role = Some(LoginRole::from_str(&tbl_admins_handler::get_role(&arg.username)).unwrap());
     }
+
     if let None = arg.password {
         arg.password = Some(tbl_admins_handler::get_password_hash(&arg.username));
+    }
+    else {
+        arg.password = Some(bcrypt::hash(arg.password.unwrap(), bcrypt::DEFAULT_COST).unwrap());
     }
 
     tbl_admins_handler::update_tbl_admins_where(
