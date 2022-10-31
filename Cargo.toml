@@ -1,5 +1,5 @@
 [package]
-name = "lcs-content-manager"
+name = "kcs-content-manager"
 version = "0.1.0"
 edition = "2021"
 
