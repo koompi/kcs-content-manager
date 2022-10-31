@@ -1,4 +1,4 @@
-# kcs-content-manager
+# lcs-content-manager
 
 ## How to run
 
