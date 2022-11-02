@@ -10,3 +10,4 @@ AUDIO_THUMBNAIL_LOCATION = ""           # root_directory/public
 ROOT_INITIAL_USERNAME = ""              # root
 ROOT_INITIAL_PASSWORD = ""              # 123
 DECRYPT_KEY = ""                        # secret_key_123
+TOKEN_EXPIRATION_SEC = ""               # 3600
