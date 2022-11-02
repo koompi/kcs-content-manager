@@ -151,3 +151,4 @@ fn extract_url_arg(req: &HttpRequest, arg: &str, err: String) -> Result<String, 
 pub mod delete_api;
 pub mod upload_api;
 pub mod query_api;
+pub mod serve_api;

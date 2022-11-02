@@ -1,14 +1,14 @@
+mod admins_handler;
 mod categories;
 mod db_handler;
 mod file_handler;
 mod file_property;
 mod tools;
-mod admins_handler;
 
 use actix_web::{App, HttpServer};
 use config::Config;
 use lazy_static::lazy_static;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fmt, str::FromStr, sync::Mutex};
 
 lazy_static! {
@@ -48,10 +48,19 @@ async fn main() -> std::io::Result<()> {
     .unwrap();
 
     db_handler::migrations::run_init_migration();
+
     let ip_addr_port = get_value_mutex_safe("IPADDR_PORT");
+    // let content_path = get_value_mutex_safe("CONTENTS_ROOT");
 
     let server = HttpServer::new(move || {
         App::new()
+            .wrap(
+                actix_cors::Cors::default()
+                    .allow_any_header()
+                    .allow_any_method()
+                    .allow_any_origin()
+                    .supports_credentials(),
+            )
             .service(file_handler::upload_api::upload)
             .service(file_handler::delete_api::delete)
             .service(file_handler::query_api::query_all)
@@ -62,6 +71,7 @@ async fn main() -> std::io::Result<()> {
             .service(admins_handler::delete_admin::delete_admin)
             .service(admins_handler::edit_admin::edit_admin)
             .service(admins_handler::query_admin::query_admin)
+            .service(file_handler::serve_api::get_file)
     })
     .bind(&ip_addr_port)?;
     println!("Server running at: {}", &ip_addr_port);
