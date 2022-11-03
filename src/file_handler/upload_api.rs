@@ -9,6 +9,7 @@ use std::{
     fs,
     io::{prelude::*, BufWriter},
     path,
+    time::SystemTime,
 };
 
 #[post("/private/api/upload/{grade}/{subject}/{type}")]
@@ -61,11 +62,14 @@ pub async fn upload(req: HttpRequest, mut payload: Multipart) -> Result<HttpResp
         }?;
         let file_extension = full_filename_split.last().unwrap();
 
-        let filename = tools::generate_random(
-            100,
-            Some(file_disposition.get_filename().unwrap().to_string()),
-        ) + "."
-            + file_extension;
+        let filename = uuid::Uuid::from_u128(
+            SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .unwrap()
+                .as_millis(),
+        )
+        .hyphenated()
+        .to_string() + base64::encode(&display_name).as_str() + "." + file_extension;
 
         let file_role = match FileRole::from_str(file_disposition.get_name().unwrap()) {
             Ok(role) => Ok(role),
@@ -88,7 +92,11 @@ pub async fn upload(req: HttpRequest, mut payload: Multipart) -> Result<HttpResp
                     Some(thumbnail) => Some(thumbnail.to_owned()),
                     None => Thumbnail::default(&file_type),
                 };
+                let file_id = uuid::Uuid::new_v4().hyphenated().to_string();
+                let grade_kh = Grades::get_kh(grade);
+                let subject_kh = Subjects::get_kh(subject);
                 file_group = FileGroup::new(
+                    file_id,
                     display_name,
                     filename,
                     location,
@@ -96,6 +104,8 @@ pub async fn upload(req: HttpRequest, mut payload: Multipart) -> Result<HttpResp
                     subject,
                     file_type,
                     default_thumbnail,
+                    grade_kh,
+                    subject_kh,
                 );
             }
             FileRole::ThumbnailFile => file_group.set_thumbnail(Thumbnail::new(filename, location)),
@@ -115,6 +125,7 @@ pub async fn upload(req: HttpRequest, mut payload: Multipart) -> Result<HttpResp
     } else {
         let thumbnail = file_group.get_thumbnail().unwrap();
         db_handler::tbl_contents_handler::insert_into_contents_table(
+            file_group.get_file_id(),
             file_group.get_display_name(),
             file_group.get_filename(),
             file_group.get_location(),

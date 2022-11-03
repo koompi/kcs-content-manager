@@ -10,6 +10,7 @@ use actix_web::{delete, error, post, web, Error, HttpRequest, HttpResponse, get}
 
 #[derive(Debug, Serialize)]
 pub struct FileGroup {
+    file_id: String,
     display_name: String,
     filename: String,
     location: String,
@@ -17,11 +18,14 @@ pub struct FileGroup {
     subject: Subjects,
     file_type: FileType,
     thumbnail: Option<Thumbnail>,
+    grade_kh: String,
+    subject_kh: String
 }
 
 impl FileGroup {
     pub fn init() -> Self {
         FileGroup {
+            file_id: String::new(),
             display_name: String::new(),
             filename: String::new(),
             location: String::new(),
@@ -29,9 +33,12 @@ impl FileGroup {
             subject: Subjects::None,
             file_type: FileType::None,
             thumbnail: None,
+            grade_kh: String::new(),
+            subject_kh: String::new()
         }
     }
     pub fn new(
+        file_id: String,
         display_name: String,
         filename: String,
         location: String,
@@ -39,8 +46,11 @@ impl FileGroup {
         subject: Subjects,
         file_type: FileType,
         thumbnail: Option<Thumbnail>,
+        grade_kh: String,
+        subject_kh: String
     ) -> Self {
         FileGroup {
+            file_id,
             display_name,
             filename,
             location,
@@ -48,7 +58,12 @@ impl FileGroup {
             subject,
             file_type,
             thumbnail,
+            grade_kh,
+            subject_kh
         }
+    }
+    pub fn get_file_id(&self) -> &str{
+        self.file_id.as_ref()
     }
     pub fn get_display_name(&self) -> &str {
         self.display_name.as_ref()

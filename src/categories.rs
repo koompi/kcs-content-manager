@@ -14,15 +14,7 @@ impl SideBarCategory {
         Grades::iterator()
             .map(|each| {
                 let category_id = each.to_string();
-                let category_display_name = format!("ថ្នាក់ទី{}", match category_id.chars().last().unwrap() {
-                    '1' => '១',
-                    '2' => '២',
-                    '3' => '៣',
-                    '4' => '៤',
-                    '5' => '៥',
-                    '6' => '៦',
-                    _ => '០'
-                });
+                let category_display_name = Grades::get_kh(each.to_owned());
                 let subcategory = SideBarSubCategory::new(each.to_owned());
                 SideBarCategory {
                     category_id,
@@ -111,7 +103,7 @@ impl Subjects {
         SUBJECTS.iter()
     }
 
-    fn get_kh(subject: Self) -> String {
+    pub fn get_kh(subject: Self) -> String {
         match subject {
             Subjects::MindMotion => String::from("ចិត្តចលភាព"),
             Subjects::PreMath => String::from("បុរេគណិត"),
@@ -178,10 +170,10 @@ impl FromStr for Subjects {
             "InformationCommunicationTechnology" => Ok(Subjects::ICT),
             "information_communication_technology" => Ok(Subjects::ICT),
             "Information_Communication_Technology" => Ok(Subjects::ICT),
-            "BasicPL" => Ok(Subjects::English),
-            "BASICPL" => Ok(Subjects::English),
-            "basicpl" => Ok(Subjects::English),
-            "basicPL" => Ok(Subjects::English),
+            "BasicPL" => Ok(Subjects::BasicPL),
+            "BASICPL" => Ok(Subjects::BasicPL),
+            "basicpl" => Ok(Subjects::BasicPL),
+            "basicPL" => Ok(Subjects::BasicPL),
             "basicProfessionalLife" => Ok(Subjects::BasicPL),
             "basicprofessionallife" => Ok(Subjects::BasicPL),
             "BasicProfessionalLife" => Ok(Subjects::BasicPL),
@@ -227,6 +219,18 @@ pub enum Grades {
 }
 
 impl Grades {
+    pub fn get_kh(grade: Self) -> String {
+        match grade {
+            Grades::Grade1 => String::from("ថ្នាក់ទី១"),
+            Grades::Grade2 => String::from("ថ្នាក់ទី២"),
+            Grades::Grade3 => String::from("ថ្នាក់ទី៣"),
+            Grades::Grade4 => String::from("ថ្នាក់ទី៤"),
+            Grades::Grade5 => String::from("ថ្នាក់ទី៥"),
+            Grades::Grade6 => String::from("ថ្នាក់ទី៦"),
+            Grades::None => String::from("ថ្នាក់ទី០"),
+        }
+    }
+
     pub fn iterator() -> Iter<'static, Grades> {
         static GRADES: [Grades; 6] = [
             self::Grades::Grade1,

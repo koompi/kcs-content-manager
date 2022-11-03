@@ -19,6 +19,15 @@ serde = { version = "*", features = ["derive"] }
 jsonwebtoken = "*"
 bcrypt = "*"
 actix-cors = "*"
+uuid = { version = "*", features = ["v4", "v7", "fast-rng", "macro-diagnostics"] }
+
+# [dependencies.uuid]
+# version = "1.2.1"
+# features = [
+#     "v4",                # Lets you generate random UUIDs
+#     "fast-rng",          # Use a faster (but still sufficiently random) RNG
+#     "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
+# ]
 
 
 [profile.dev]
