@@ -61,6 +61,7 @@ async fn main() -> std::io::Result<()> {
                     .allow_any_origin()
                     .supports_credentials(),
             )
+            .service(categories::get_sidebar)
             .service(file_handler::upload_api::upload)
             .service(file_handler::delete_api::delete)
             .service(file_handler::query_api::query_all)

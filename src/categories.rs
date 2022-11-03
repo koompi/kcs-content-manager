@@ -1,5 +1,70 @@
 use super::{fmt, FromStr, Serialize};
 use std::slice::Iter;
+use actix_web::{Error, HttpResponse, get};
+
+#[derive(Serialize)]
+pub struct SideBarCategory {
+    category_id: String,
+    category_display_name: String,
+    subcategory: Vec<SideBarSubCategory>,
+}
+
+impl SideBarCategory {
+    pub fn new() -> Vec<Self> {
+        Grades::iterator()
+            .map(|each| {
+                let category_id = each.to_string();
+                let category_display_name = format!("ថ្នាក់ទី{}", match category_id.chars().last().unwrap() {
+                    '1' => '១',
+                    '2' => '២',
+                    '3' => '៣',
+                    '4' => '៤',
+                    '5' => '៥',
+                    '6' => '៦',
+                    _ => '០'
+                });
+                let subcategory = SideBarSubCategory::new(each.to_owned());
+                SideBarCategory {
+                    category_id,
+                    category_display_name,
+                    subcategory,
+                }
+            })
+            .collect::<Vec<Self>>()
+    }
+}
+
+#[derive(Serialize)]
+pub struct SideBarSubCategory {
+    subcategory_id: String,
+    subcategory_display_name: String,
+}
+
+impl SideBarSubCategory {
+    pub fn new(grade: Grades) -> Vec<Self> {
+        let mut vec_cate: Vec<Self> = Vec::new();
+        if grade == Grades::Grade1 || grade == Grades::Grade2 || grade == Grades::Grade3 {
+            Subjects::get_basic_iter().for_each(|each| {
+                let subcategory_id = each.to_string();
+                let subcategory_display_name = Subjects::get_kh(each.to_owned());
+                vec_cate.push(SideBarSubCategory {
+                    subcategory_id,
+                    subcategory_display_name,
+                })
+            })
+        } else {
+            Subjects::iterator().for_each(|each| {
+                let subcategory_id = each.to_string();
+                let subcategory_display_name = Subjects::get_kh(each.to_owned());
+                vec_cate.push(SideBarSubCategory {
+                    subcategory_id,
+                    subcategory_display_name,
+                })
+            })
+        }
+        vec_cate
+    }
+}
 
 #[derive(Debug, Clone, Copy, Serialize)]
 pub enum Subjects {
@@ -14,10 +79,21 @@ pub enum Subjects {
     English,
     ICT,
     BasicPL,
-    None
+    None,
 }
 
 impl Subjects {
+    pub fn get_basic_iter() -> Iter<'static, Subjects> {
+        static SUBJECTS: [Subjects; 5] = [
+            self::Subjects::MindMotion,
+            self::Subjects::PreMath,
+            self::Subjects::PreWriting,
+            self::Subjects::Art,
+            self::Subjects::PE,
+        ];
+        SUBJECTS.iter()
+    }
+
     pub fn iterator() -> Iter<'static, Subjects> {
         static SUBJECTS: [Subjects; 11] = [
             self::Subjects::MindMotion,
@@ -33,6 +109,23 @@ impl Subjects {
             self::Subjects::BasicPL,
         ];
         SUBJECTS.iter()
+    }
+
+    fn get_kh(subject: Self) -> String {
+        match subject {
+            Subjects::MindMotion => String::from("ចិត្តចលភាព"),
+            Subjects::PreMath => String::from("បុរេគណិត"),
+            Subjects::PreWriting => String::from("បុរេសំណេរ"),
+            Subjects::Science => String::from("វិទ្យាសាស្រ្ត"),
+            Subjects::Social => String::from("សង្គម"),
+            Subjects::Art => String::from("អប់រំសិល្បៈ"),
+            Subjects::PE => String::from("អប់រំកាយនិងកីឡា"),
+            Subjects::French => String::from("ភាសាបារាំង"),
+            Subjects::English => String::from("ភាសាអង់គ្លេស"),
+            Subjects::ICT => String::from("ព័ត៌មានវិទ្យា"),
+            Subjects::BasicPL => String::from("បំណិនជីវិតមូលដ្ឋាន"),
+            Subjects::None => String::from(""),
+        }
     }
 }
 
@@ -122,7 +215,7 @@ impl fmt::Display for Subjects {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize)]
+#[derive(Debug, Clone, Copy, Serialize, PartialEq)]
 pub enum Grades {
     Grade1,
     Grade2,
@@ -130,7 +223,7 @@ pub enum Grades {
     Grade4,
     Grade5,
     Grade6,
-    None
+    None,
 }
 
 impl Grades {
@@ -214,4 +307,9 @@ impl fmt::Display for Grades {
             Grades::None => write!(f, "None"),
         }
     }
+}
+
+#[get("/public/api/sidebar")]
+pub async fn get_sidebar() -> Result<HttpResponse, Error> {
+    Ok(HttpResponse::Ok().json(SideBarCategory::new()))
 }
