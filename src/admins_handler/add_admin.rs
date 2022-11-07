@@ -29,7 +29,7 @@ pub async fn add_admin(
         )))
     }?;
 
-    match tbl_admins_handler::query_existence_of_admin(&arg.username) {
+    match tbl_admins_handler::query_existence_of_admin(&arg.username.to_owned().unwrap()) {
         true => Err(error::ErrorInternalServerError(String::from(
             "User already exists",
         ))),
@@ -45,13 +45,17 @@ pub async fn add_admin(
     else if let None = arg.password {
         Err(error::ErrorBadRequest(String::from("Missing Password")))
     }
+    else if let None = arg.username {
+        Err(error::ErrorBadRequest(String::from("Missing Username")))
+    }
     else {
         Ok(())
     }?;
 
     tbl_admins_handler::insert_into_tbl_admins(
+        &uuid::Uuid::new_v4().hyphenated().to_string(),
         &arg.display_name.to_owned().unwrap(),
-        &arg.username,
+        &arg.username.to_owned().unwrap(),
         &bcrypt::hash::<String>(arg.password.to_owned().unwrap(), bcrypt::DEFAULT_COST).unwrap(),
         &arg.role.as_ref().to_owned().unwrap().to_string(),
     );

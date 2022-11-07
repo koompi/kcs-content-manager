@@ -1,6 +1,6 @@
 use super::{
     db_handler::tbl_contents_handler, delete, error, extract_url_arg, tbl_admins_handler,
-    validate_token, web, Error, FromStr, Grades, HttpRequest, HttpResponse, Subjects,
+    validate_token, Error, FromStr, Grades, HttpRequest, HttpResponse, Subjects,
 };
 
 #[delete("/private/api/delete/{file_id}")]
@@ -39,8 +39,8 @@ pub async fn delete_by_id(req: HttpRequest) -> Result<HttpResponse, Error> {
     Ok(HttpResponse::Ok().finish())
 }
 
-#[delete("/private/api/delete/{grade}/{subject}")]
-pub async fn delete(req: HttpRequest, file_id: web::Json<String>) -> Result<HttpResponse, Error> {
+#[delete("/private/api/delete/{grade}/{subject}/{file_id}")]
+pub async fn delete(req: HttpRequest) -> Result<HttpResponse, Error> {
     let (_, claims) = match validate_token(&req) {
         Ok((role, claims)) => Ok((role, claims)),
         Err((code, message)) => match code {
@@ -76,7 +76,11 @@ pub async fn delete(req: HttpRequest, file_id: web::Json<String>) -> Result<Http
     }?
     .to_string();
 
-    let file_id = file_id.into_inner();
+    let file_id = &extract_url_arg(
+        &req,
+        "file_id",
+        String::from("Check if file_id URL Arg is valid"),
+    )?;
 
     match tbl_contents_handler::query_existence_of_file(&file_id, &grade, &subject) {
         true => Ok(()),

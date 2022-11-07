@@ -6,7 +6,7 @@ use super::{
     get_value_mutex_safe, Serialize, admins_handler::validate_token
 };
 use actix_multipart::{Field, Multipart};
-use actix_web::{delete, error, post, web, Error, HttpRequest, HttpResponse, get};
+use actix_web::{delete, error, post, Error, HttpRequest, HttpResponse, get};
 
 #[derive(Debug, Serialize)]
 pub struct FileGroup {
@@ -156,7 +156,7 @@ impl ToOwned for Thumbnail {
     }
 }
 
-fn extract_url_arg(req: &HttpRequest, arg: &str, err: String) -> Result<String, Error> {
+pub fn extract_url_arg(req: &HttpRequest, arg: &str, err: String) -> Result<String, Error> {
     match req.match_info().get(arg) {
         Some(arg) => Ok(arg.to_owned()),
         None => Err(error::ErrorInternalServerError(err)),

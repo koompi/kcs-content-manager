@@ -23,7 +23,8 @@ pub async fn login(login_args: web::Json<LoginModel>) -> Result<HttpResponse, Er
     }?;
 
     let timestamp = jsonwebtoken::get_current_timestamp();
-    let current_role = tbl_admins_handler::get_role(username);
+    let user_id = tbl_admins_handler::get_user_id_from_username(username);
+    let current_role = tbl_admins_handler::get_role(user_id.as_ref());
 
     let token = jsonwebtoken::encode(
         &jsonwebtoken::Header::default(),

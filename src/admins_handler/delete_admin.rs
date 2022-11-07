@@ -1,12 +1,12 @@
 use super::{
-    delete, error, tbl_admins_handler, validate_token, web, Error, HttpRequest, HttpResponse,
-    LoginRole,
+    delete, error, file_handler, tbl_admins_handler, validate_token, Error, HttpRequest,
+    HttpResponse, LoginRole,
 };
 
-#[delete("/private/api/admin/delete")]
+#[delete("/private/api/admin/delete/{user_id}")]
 pub async fn delete_admin(
     req: HttpRequest,
-    username: web::Json<String>,
+    // username: web::Json<String>,
 ) -> Result<HttpResponse, Error> {
     let (role, claims) = match validate_token(&req) {
         Ok((role, claims)) => Ok((role, claims)),
@@ -15,6 +15,12 @@ pub async fn delete_admin(
             _ => Err(actix_web::error::ErrorUnauthorized(message)),
         },
     }?;
+
+    let user_id = &file_handler::extract_url_arg(
+        &req,
+        "user_id",
+        String::from("Check if user_id URL Arg is valid"),
+    )?;
 
     match role {
         LoginRole::Root => Ok(()),
@@ -25,17 +31,17 @@ pub async fn delete_admin(
         true => Ok(()),
         false => Err(error::ErrorInternalServerError(String::from(
             "This Root doesn't exists",
-        )))
+        ))),
     }?;
 
-    match tbl_admins_handler::query_existence_of_admin(&username) {
+    match tbl_admins_handler::query_existence_of_admin_by_id(user_id) {
         true => Ok(()),
         false => Err(error::ErrorInternalServerError(String::from(
             "User doesn't exist",
         ))),
     }?;
 
-    tbl_admins_handler::delete_from_tbl_admins(&username.into_inner());
+    tbl_admins_handler::delete_from_tbl_admins(&user_id);
 
     Ok(HttpResponse::Ok().finish())
 }

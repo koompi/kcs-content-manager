@@ -1,24 +1,27 @@
-use super::{db_handler::tbl_admins_handler, get_value_mutex_safe, Deserialize, Serialize};
+use super::{db_handler::tbl_admins_handler, get_value_mutex_safe, Deserialize, Serialize, file_handler};
 use actix_web::{delete, error, post, put, web, Error, HttpRequest, HttpResponse, get};
 use bcrypt::verify;
 use std::{fmt, str::FromStr};
 
 #[derive(Serialize, Deserialize)]
 pub struct AdminsInfo {
+    user_id: Option<String>,
     display_name: Option<String>,
-    username: String,
+    username: Option<String>,
     password: Option<String>,
     role: Option<LoginRole>,
 }
 
 impl AdminsInfo {
     pub fn new(
+        user_id: Option<String>,
         display_name: Option<String>,
-        username: String,
+        username: Option<String>,
         password: Option<String>,
         role: Option<LoginRole>,
     ) -> Self {
         Self {
+            user_id,
             display_name,
             username,
             password,
@@ -93,7 +96,8 @@ impl Claims {
 }
 
 fn validate_password(username: &str, password: &str) -> bool {
-    let password_hash = tbl_admins_handler::get_password_hash(username);
+    let user_id = tbl_admins_handler::get_user_id_from_username(username);
+    let password_hash = tbl_admins_handler::get_password_hash(&user_id);
     verify(password, &password_hash).unwrap()
 }
 

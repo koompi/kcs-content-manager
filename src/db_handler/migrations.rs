@@ -12,15 +12,27 @@ pub fn run_init_migration() {
     if !std::path::Path::new(&database).exists() {
         Connection::open(&database).unwrap().execute_batch(format!(
 "BEGIN;
-CREATE TABLE tblContents (
-    FileID NVARCHAR(100) NOT NULL PRIMARY KEY UNIQUE, DisplayName VARCHAR(255), FileName NVARCHAR(100) NOT NULL, Location VARCHAR(255), FileType CHARACTER(20), 
-    Grade NVARCHAR(100), Subject NVARCHAR(100), ThumbnailName NVARCHAR(100), ThumbnailLocation VARCHAR(255)
+CREATE TABLE tblContents(
+    FileID NVARCHAR(100) NOT NULL PRIMARY KEY UNIQUE, 
+    DisplayName VARCHAR(255), 
+    FileName NVARCHAR(100) NOT NULL, 
+    Location VARCHAR(255) NOT NULL, 
+    FileType CHARACTER(20) NOT NULL, 
+    Grade NVARCHAR(100) NOT NULL, 
+    Subject NVARCHAR(100) NOT NULL, 
+    ThumbnailName NVARCHAR(100) NOT NULL, 
+    ThumbnailLocation VARCHAR(255) NOT NULL
 );
-CREATE TABLE tblAdmins (DisplayName NVARCHAR(100), UserName NVARCHAR(100) NOT NULL PRIMARY KEY UNIQUE, 
-    PasswordHash NVARCHAR(100), Role NVARCHAR(100) NOT NULL
+CREATE TABLE tblAdmins(
+    UserID NVARCHAR(100) NOT NULL PRIMARY KEY UNIQUE, 
+    DisplayName NVARCHAR(100), 
+    UserName NVARCHAR(100) NOT NULL UNIQUE, 
+    PasswordHash NVARCHAR(100) NOT NULL, 
+    Role NVARCHAR(100) NOT NULL
 );
-INSERT INTO tblAdmins(DisplayName, UserName, PasswordHash, Role) VALUES('Root', '{}', '{}', 'Root');
-COMMIT;", init_username, init_password).as_str()).unwrap();
+INSERT INTO tblAdmins('UserID', DisplayName, UserName, PasswordHash, Role) 
+    VALUES('{}', 'Root', '{}', '{}', 'Root');
+COMMIT;", &uuid::Uuid::new_v4().hyphenated().to_string(), init_username, init_password).as_str()).unwrap();
     }
 
     let root_path = get_value_mutex_safe("CONTENTS_ROOT");
