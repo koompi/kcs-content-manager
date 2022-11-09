@@ -199,3 +199,37 @@ pub fn query_from_tbl_admins_by_id(user_id: &str) -> AdminsInfo {
     })
     .unwrap()
 }
+
+pub fn search_from_tbl_admins(search_string: &str) -> Vec<AdminsInfo> {
+    let database = get_value_mutex_safe("DATABASE");
+    let connection = Connection::open(&database).unwrap();
+
+    let mut stmt = connection
+        .prepare(
+            "SELECT UserID,DisplayName,UserName,Role FROM tblAdmins
+WHERE Username LIKE %?1% OR DisplayName LIKE %?2% OR Role LIKE %?3%",
+        )
+        .unwrap();
+
+    let rows = stmt.query(params![search_string, search_string, search_string]);
+    let mut admin_lists: Vec<AdminsInfo> = Vec::new();
+
+    if let Ok(mut rows) = rows {
+        while let Some(row) = rows.next().unwrap() {
+            let user_id: String = row.get(0).unwrap();
+            let display_name: String = row.get(1).unwrap();
+            let username: String = row.get(2).unwrap();
+            let role_str: String = row.get(3).unwrap();
+            let role: LoginRole = LoginRole::from_str(&role_str).unwrap();
+            admin_lists.push(AdminsInfo::new(
+                Some(user_id),
+                Some(display_name),
+                Some(username),
+                None,
+                Some(role),
+            ))
+        }
+    }
+
+    admin_lists
+}

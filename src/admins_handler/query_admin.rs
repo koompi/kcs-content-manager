@@ -59,3 +59,31 @@ pub async fn query_admin_by_id(req: HttpRequest) -> Result<HttpResponse, Error> 
         tbl_admins_handler::query_from_tbl_admins_by_id(&user_id)
     ))
 }
+
+#[get("/private/api/admin/search/{search_string}")]
+pub async fn search_admin(req: HttpRequest) -> Result<HttpResponse, Error> {
+    let (_, claims) = match validate_token(&req) {
+        Ok((role, claims)) => Ok((role, claims)),
+        Err((code, message)) => match code {
+            401 => Err(actix_web::error::ErrorGone(message)),
+            _ => Err(actix_web::error::ErrorUnauthorized(message)),
+        },
+    }?;
+
+    match tbl_admins_handler::query_existence_of_admin(claims.get_aud()) {
+        true => Ok(()),
+        false => Err(error::ErrorInternalServerError(String::from(
+            "This Root doesn't exists",
+        )))
+    }?;
+
+    let search_string = &file_handler::extract_url_arg(
+        &req,
+        "search_string",
+        String::from("Check if search_string URL Arg is valid"),
+    )?;
+
+    Ok(HttpResponse::Ok().json(
+        tbl_admins_handler::search_from_tbl_admins(&search_string)
+    ))
+}

@@ -83,6 +83,16 @@ pub async fn query_by_grade(req: HttpRequest) -> Result<HttpResponse, Error> {
     )
 }
 
+#[get("/public/api/search/{search_string}")]
+pub async fn seatch_contents(req: HttpRequest) -> Result<HttpResponse, Error> {
+    let search_string = extract_url_arg(
+        &req,
+        "search_string",
+        String::from("Check if search_string URL Arg is valid"),
+    )?;
+    Ok(HttpResponse::Ok().json(tbl_contents_handler::search_from_tbl_contents(&search_string)))
+}
+
 #[get("/public/api/query")]
 pub async fn query_all() -> Result<HttpResponse, Error> {
     Ok(HttpResponse::Ok().json(tbl_contents_handler::query_all_from_tbl_contents()))

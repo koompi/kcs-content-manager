@@ -54,10 +54,7 @@ pub fn delete_from_tbl_contents_by_id(file_id: &str) {
     let database = get_value_mutex_safe("DATABASE");
     Connection::open(&database)
         .unwrap()
-        .execute(
-            "DELETE FROM tblContents WHERE FileID=?",
-            &[file_id],
-        )
+        .execute("DELETE FROM tblContents WHERE FileID=?", &[file_id])
         .unwrap();
 }
 
@@ -66,9 +63,7 @@ pub fn query_existence_of_file(file_id: &str, grade: &str, subject: &str) -> boo
     let connection = Connection::open(&database).unwrap();
 
     let mut stmt = connection
-        .prepare(
-            "SELECT FileID FROM tblContents WHERE FileID=? AND Grade=? AND Subject=? LIMIT 1",
-        )
+        .prepare("SELECT FileID FROM tblContents WHERE FileID=? AND Grade=? AND Subject=? LIMIT 1")
         .unwrap();
     stmt.exists(params![file_id, grade, subject]).unwrap()
 }
@@ -82,18 +77,23 @@ pub fn query_file_thumbnail_location_by_id(file_id: &str) -> (String, String) {
             "SELECT FileName,Location,ThumbnailName,ThumbnailLocation FROM tblContents WHERE FileID=?",
         )
         .unwrap();
-        stmt.query_row([file_id], |row| {
-            let file_name: String = row.get(0).unwrap();
-            let file_location: String = row.get(1).unwrap();
-            let thumbnail_name: String = row.get(2).unwrap();
-            let thumbnail_location: String = row.get(3).unwrap();
-            let file_full_path = file_location + "/" + &file_name;
-            let thumb_full_path = thumbnail_location + "/" + &thumbnail_name;
-            Ok((file_full_path, thumb_full_path))
-        }).unwrap()
+    stmt.query_row([file_id], |row| {
+        let file_name: String = row.get(0).unwrap();
+        let file_location: String = row.get(1).unwrap();
+        let thumbnail_name: String = row.get(2).unwrap();
+        let thumbnail_location: String = row.get(3).unwrap();
+        let file_full_path = file_location + "/" + &file_name;
+        let thumb_full_path = thumbnail_location + "/" + &thumbnail_name;
+        Ok((file_full_path, thumb_full_path))
+    })
+    .unwrap()
 }
 
-pub fn query_file_thumbnail_location(file_id: &str, grade: &str, subject: &str) -> (String, String) {
+pub fn query_file_thumbnail_location(
+    file_id: &str,
+    grade: &str,
+    subject: &str,
+) -> (String, String) {
     let database = get_value_mutex_safe("DATABASE");
     let connection = Connection::open(&database).unwrap();
 
@@ -102,15 +102,16 @@ pub fn query_file_thumbnail_location(file_id: &str, grade: &str, subject: &str) 
 "SELECT FileName,Location,ThumbnailName,ThumbnailLocation FROM tblContents WHERE FileID=? AND Grade=? AND Subject=?",
         )
         .unwrap();
-        stmt.query_row([file_id, grade, subject], |row| {
-            let file_name: String = row.get(0).unwrap();
-            let file_location: String = row.get(1).unwrap();
-            let thumbnail_name: String = row.get(2).unwrap();
-            let thumbnail_location: String = row.get(3).unwrap();
-            let file_full_path = file_location + "/" + &file_name;
-            let thumb_full_path = thumbnail_location + "/" + &thumbnail_name;
-            Ok((file_full_path, thumb_full_path))
-        }).unwrap()
+    stmt.query_row([file_id, grade, subject], |row| {
+        let file_name: String = row.get(0).unwrap();
+        let file_location: String = row.get(1).unwrap();
+        let thumbnail_name: String = row.get(2).unwrap();
+        let thumbnail_location: String = row.get(3).unwrap();
+        let file_full_path = file_location + "/" + &file_name;
+        let thumb_full_path = thumbnail_location + "/" + &thumbnail_name;
+        Ok((file_full_path, thumb_full_path))
+    })
+    .unwrap()
 }
 
 pub fn query_existence_of_file_id(file_id: &str) -> bool {
@@ -118,14 +119,16 @@ pub fn query_existence_of_file_id(file_id: &str) -> bool {
     let connection = Connection::open(&database).unwrap();
 
     let mut stmt = connection
-        .prepare(
-            "SELECT FileID FROM tblContents WHERE FileID=? LIMIT 1",
-        )
+        .prepare("SELECT FileID FROM tblContents WHERE FileID=? LIMIT 1")
         .unwrap();
     stmt.exists(params![file_id]).unwrap()
 }
 
-pub fn query_from_tbl_contents_with_grade_subject_file_id(grade: &str, subject: &str, file_id: &str) -> FileGroup {
+pub fn query_from_tbl_contents_with_grade_subject_file_id(
+    grade: &str,
+    subject: &str,
+    file_id: &str,
+) -> FileGroup {
     let database = get_value_mutex_safe("DATABASE");
     let connection = Connection::open(&database).unwrap();
 
@@ -154,9 +157,20 @@ pub fn query_from_tbl_contents_with_grade_subject_file_id(grade: &str, subject: 
 
         let grade_kh = Grades::get_kh(grade);
         let subject_kh = Subjects::get_kh(subject);
-        Ok(FileGroup::new(file_id, display_name, filename, location, grade, subject, file_type, Some(thumbnail), grade_kh, subject_kh))
-    }).unwrap()
-
+        Ok(FileGroup::new(
+            file_id,
+            display_name,
+            filename,
+            location,
+            grade,
+            subject,
+            file_type,
+            Some(thumbnail),
+            grade_kh,
+            subject_kh,
+        ))
+    })
+    .unwrap()
 }
 
 pub fn query_from_tbl_contents_with_grade_subject(grade: &str, subject: &str) -> Vec<FileGroup> {
@@ -195,11 +209,28 @@ pub fn query_all_from_tbl_contents() -> Vec<FileGroup> {
     let database = get_value_mutex_safe("DATABASE");
     let connection = Connection::open(&database).unwrap();
 
-    let mut stmt = connection
-        .prepare("SELECT * FROM tblContents")
-        .unwrap();
+    let mut stmt = connection.prepare("SELECT * FROM tblContents").unwrap();
 
     let rows = stmt.query([]);
+
+    match rows {
+        Ok(mut rows) => filter_rows_for_filegroup(&mut rows),
+        Err(_) => Vec::new(),
+    }
+}
+
+pub fn search_from_tbl_contents(search_string: &str) -> Vec<FileGroup> {
+    let database = get_value_mutex_safe("DATABASE");
+    let connection = Connection::open(&database).unwrap();
+
+    let mut stmt = connection
+        .prepare(
+            "SELECT * FROM tblContents 
+WHERE DisplayName LIKE '%?1%' OR FileType LIKE '%?2%' OR Grade LIKE '%?3%' OR Subject LIKE '%?4%'",
+        )
+        .unwrap();
+
+    let rows = stmt.query(params![search_string, search_string, search_string, search_string]);
 
     match rows {
         Ok(mut rows) => filter_rows_for_filegroup(&mut rows),
@@ -241,10 +272,9 @@ fn filter_rows_for_filegroup(rows: &mut Rows) -> Vec<FileGroup> {
             file_type,
             Some(thumbnail),
             grade_kh,
-            subject_kh
+            subject_kh,
         ));
     }
 
     file_lists
 }
-
