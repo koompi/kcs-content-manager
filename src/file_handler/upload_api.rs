@@ -12,6 +12,13 @@ use std::{
     time::SystemTime,
 };
 
+fn truncate(s: &str, max_chars: usize) -> &str {
+    match s.char_indices().nth(max_chars) {
+        None => s,
+        Some((idx, _)) => &s[..idx],
+    }
+}
+
 #[post("/private/api/upload/{grade}/{subject}/{type}")]
 pub async fn upload(req: HttpRequest, mut payload: Multipart) -> Result<HttpResponse, Error> {
     let (_, claims) = match validate_token(&req) {
@@ -69,7 +76,14 @@ pub async fn upload(req: HttpRequest, mut payload: Multipart) -> Result<HttpResp
                 .as_millis(),
         )
         .hyphenated()
-        .to_string() + base64::encode(&display_name).as_str() + "." + file_extension;
+        .to_string()
+            + base64::encode(&display_name)
+                .replace(
+                    &['/', ' ', '\\', '&', '|', ':', ';', '$', '#', '~', '='],
+                    "-",
+                )
+                .as_str();
+        let filename = truncate(&filename, 240).to_string() + "." + file_extension;
 
         let file_role = match FileRole::from_str(file_disposition.get_name().unwrap()) {
             Ok(role) => Ok(role),
@@ -78,7 +92,6 @@ pub async fn upload(req: HttpRequest, mut payload: Multipart) -> Result<HttpResp
         let root_path = get_value_mutex_safe("CONTENTS_ROOT");
         let location = format!("{}/{}/{}", root_path, &grade, &subject);
         let fullpath = format!("{}/{}", location, filename);
-
         let file_obj = tools::continue_file(fullpath.as_ref());
 
         while let Some(chunk) = field.next().await {

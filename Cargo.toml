@@ -21,6 +21,12 @@ bcrypt = "*"
 actix-cors = "*"
 uuid = { version = "*", features = ["v4", "v7", "fast-rng", "macro-diagnostics"] }
 
+awc = "*"
+clap = { version = "*", features = ["derive"] }
+env_logger = "*"
+log = "*"
+url = "*"
+
 # [dependencies.uuid]
 # version = "1.2.1"
 # features = [

@@ -1,4 +1,4 @@
-use super::{fmt, FromStr, Serialize};
+use super::{fmt, FromStr, Serialize, get_value_mutex_safe};
 use std::slice::Iter;
 use actix_web::{Error, HttpResponse, get};
 
@@ -6,6 +6,7 @@ use actix_web::{Error, HttpResponse, get};
 pub struct SideBarCategory {
     category_id: String,
     category_display_name: String,
+    icon: String,
     subcategory: Vec<SideBarSubCategory>,
 }
 
@@ -16,8 +17,10 @@ impl SideBarCategory {
                 let category_id = each.to_string();
                 let category_display_name = Grades::get_kh(each.to_owned());
                 let subcategory = SideBarSubCategory::new(each.to_owned());
+                let icon = Grades::get_icons(each.to_owned());
                 SideBarCategory {
                     category_id,
+                    icon,
                     category_display_name,
                     subcategory,
                 }
@@ -35,7 +38,27 @@ pub struct SideBarSubCategory {
 impl SideBarSubCategory {
     pub fn new(grade: Grades) -> Vec<Self> {
         let mut vec_cate: Vec<Self> = Vec::new();
-        if grade == Grades::Grade1 || grade == Grades::Grade2 || grade == Grades::Grade3 {
+        if grade == Grades::FolkLore {
+            Subjects::get_lang_iter().for_each(|each| {
+                let subcategory_id = each.to_string();
+                let subcategory_display_name = Subjects::get_kh(each.to_owned());
+                vec_cate.push(SideBarSubCategory {
+                    subcategory_id,
+                    subcategory_display_name,
+                })
+            })
+        }
+        if grade == Grades::Help {
+            Subjects::get_help_iter().for_each(|each| {
+                let subcategory_id = each.to_string();
+                let subcategory_display_name = Subjects::get_kh(each.to_owned());
+                vec_cate.push(SideBarSubCategory {
+                    subcategory_id,
+                    subcategory_display_name,
+                })
+            })
+        }
+        else if grade == Grades::Grade1 || grade == Grades::Grade2 || grade == Grades::Grade3 {
             Subjects::get_basic_iter().for_each(|each| {
                 let subcategory_id = each.to_string();
                 let subcategory_display_name = Subjects::get_kh(each.to_owned());
@@ -67,27 +90,69 @@ pub enum Subjects {
     Social,
     Art,
     PE,
-    French,
-    English,
+    FrenchLang,
+    EnglishLang,
+    KreungLang,
+    TompounLang,
+    ProvLang,
+    PnorngLang,
+    KavetLang,
+    KhmerLang,
     ICT,
     BasicPL,
+    TeachingGuide,
+    FlashCard,
+    Help,
     None,
 }
 
 impl Subjects {
     pub fn get_basic_iter() -> Iter<'static, Subjects> {
-        static SUBJECTS: [Subjects; 5] = [
+        static SUBJECTS: [Subjects; 15] = [
             self::Subjects::MindMotion,
             self::Subjects::PreMath,
             self::Subjects::PreWriting,
             self::Subjects::Art,
             self::Subjects::PE,
+            self::Subjects::FlashCard,
+            self::Subjects::EnglishLang,
+            self::Subjects::KhmerLang,
+            self::Subjects::KavetLang,
+            self::Subjects::FrenchLang,
+            self::Subjects::PnorngLang,
+            self::Subjects::TompounLang,
+            self::Subjects::KreungLang,
+            self::Subjects::KhmerLang,
+            self::Subjects::ProvLang
+        ];
+        SUBJECTS.iter()
+    }
+
+    pub fn get_lang_iter() -> Iter<'static, Subjects> {
+        static SUBJECTS: [Subjects; 10] = [
+            self::Subjects::EnglishLang,
+            self::Subjects::KhmerLang,
+            self::Subjects::KavetLang,
+            self::Subjects::FrenchLang,
+            self::Subjects::PnorngLang,
+            self::Subjects::TompounLang,
+            self::Subjects::KreungLang,
+            self::Subjects::KhmerLang,
+            self::Subjects::ProvLang,
+            self::Subjects::TeachingGuide,
+        ];
+        SUBJECTS.iter()
+    }
+
+    pub fn get_help_iter() -> Iter<'static, Subjects> {
+        static SUBJECTS: [Subjects; 1] = [
+            self::Subjects::Help,
         ];
         SUBJECTS.iter()
     }
 
     pub fn iterator() -> Iter<'static, Subjects> {
-        static SUBJECTS: [Subjects; 11] = [
+        static SUBJECTS: [Subjects; 21] = [
             self::Subjects::MindMotion,
             self::Subjects::PreMath,
             self::Subjects::PreWriting,
@@ -95,10 +160,20 @@ impl Subjects {
             self::Subjects::Social,
             self::Subjects::Art,
             self::Subjects::PE,
-            self::Subjects::French,
-            self::Subjects::English,
+            self::Subjects::EnglishLang,
+            self::Subjects::KhmerLang,
+            self::Subjects::KavetLang,
+            self::Subjects::FrenchLang,
+            self::Subjects::PnorngLang,
+            self::Subjects::TompounLang,
+            self::Subjects::KreungLang,
+            self::Subjects::KhmerLang,
+            self::Subjects::ProvLang,
             self::Subjects::ICT,
             self::Subjects::BasicPL,
+            self::Subjects::TeachingGuide,
+            self::Subjects::FlashCard,
+            self::Subjects::Help
         ];
         SUBJECTS.iter()
     }
@@ -112,10 +187,19 @@ impl Subjects {
             Subjects::Social => String::from("សង្គម"),
             Subjects::Art => String::from("អប់រំសិល្បៈ"),
             Subjects::PE => String::from("អប់រំកាយនិងកីឡា"),
-            Subjects::French => String::from("ភាសាបារាំង"),
-            Subjects::English => String::from("ភាសាអង់គ្លេស"),
+            Subjects::FrenchLang => String::from("ភាសាបារាំង"),
+            Subjects::EnglishLang => String::from("ភាសាអង់គ្លេស"),
+            Subjects::KreungLang => String::from("ភាសាគ្រឹង"),
+            Subjects::TompounLang => String::from("ភាសាទំពួន"),
+            Subjects::PnorngLang => String::from("ភាសាព្នង"),
+            Subjects::KavetLang => String::from("ភាសាកាវែត"),
+            Subjects::KhmerLang => String::from("ភាសាខ្មែរ"),
             Subjects::ICT => String::from("ព័ត៌មានវិទ្យា"),
             Subjects::BasicPL => String::from("បំណិនជីវិតមូលដ្ឋាន"),
+            Subjects::TeachingGuide => String::from("សៀវភៅមគ្គុទេសគ្រូថ្នាក់អប់រំពហុភាសា"),
+            Subjects::ProvLang => String::from("ភាសាព្រៅ"),
+            Subjects::FlashCard => String::from("កាតប្លាស់"),
+            Subjects::Help => String::from("ជំនួយ"),
             Subjects::None => String::from(""),
         }
     }
@@ -158,12 +242,30 @@ impl FromStr for Subjects {
             "SOCIAL" => Ok(Subjects::Social),
             "social" => Ok(Subjects::Social),
             "Social" => Ok(Subjects::Social),
-            "French" => Ok(Subjects::French),
-            "french" => Ok(Subjects::French),
-            "FRENCH" => Ok(Subjects::French),
-            "English" => Ok(Subjects::English),
-            "ENGLISH" => Ok(Subjects::English),
-            "english" => Ok(Subjects::English),
+            "FrenchLang" => Ok(Subjects::FrenchLang),
+            "frenchlang" => Ok(Subjects::FrenchLang),
+            "FRENCHLANG" => Ok(Subjects::FrenchLang),
+            "EnglishLang" => Ok(Subjects::EnglishLang),
+            "ENGLISHLANG" => Ok(Subjects::EnglishLang),
+            "englishlang" => Ok(Subjects::EnglishLang),
+            "KreungLang" => Ok(Subjects::KreungLang),
+            "KREUNGLANG" => Ok(Subjects::KreungLang),
+            "kreunglang" => Ok(Subjects::KreungLang),
+            "PnorngLang" => Ok(Subjects::PnorngLang),
+            "PNORGLANG" => Ok(Subjects::PnorngLang),
+            "pnorglang" => Ok(Subjects::PnorngLang),
+            "KhmerLang" => Ok(Subjects::KhmerLang),
+            "KHMERLANG" => Ok(Subjects::KhmerLang),
+            "khmerlang" => Ok(Subjects::KhmerLang),
+            "KavetLang" => Ok(Subjects::KavetLang),
+            "KAVETLANG" => Ok(Subjects::KavetLang),
+            "kavetlang" => Ok(Subjects::KavetLang),
+            "TompounLang" => Ok(Subjects::TompounLang),
+            "TOMPOUNLANG" => Ok(Subjects::TompounLang),
+            "tompounlang" => Ok(Subjects::TompounLang),
+            "ProvLang" => Ok(Subjects::ProvLang),
+            "PROVLANG" => Ok(Subjects::ProvLang),
+            "provlang" => Ok(Subjects::ProvLang), 
             "ICT" => Ok(Subjects::ICT),
             "ict" => Ok(Subjects::ICT),
             "informationcommunicationtechnology" => Ok(Subjects::ICT),
@@ -178,11 +280,22 @@ impl FromStr for Subjects {
             "basicprofessionallife" => Ok(Subjects::BasicPL),
             "BasicProfessionalLife" => Ok(Subjects::BasicPL),
             "Basic_Professional_Life" => Ok(Subjects::BasicPL),
+            "TeachingGuide" => Ok(Subjects::TeachingGuide),
+            "TEACHINGGUIDE" => Ok(Subjects::TeachingGuide),
+            "teachingguide" => Ok(Subjects::TeachingGuide),
+            "FlashCard" => Ok(Subjects::FlashCard),
+            "FLASHCARD" => Ok(Subjects::FlashCard),
+            "flashcard" => Ok(Subjects::FlashCard),
+            "Help" => Ok(Subjects::Help),
+            "HELP" => Ok(Subjects::Help),
+            "help" => Ok(Subjects::Help),
             "None" => Ok(Subjects::None),
             "NONE" => Ok(Subjects::None),
             "none" => Ok(Subjects::None),
             _ => Err(String::from(
-                "Mismatch type: MindMotion, PreMath, PreWriting, Science, Social, Art, PE, French, English, ICT, BasicPL"
+"Mismatch type: MindMotion, PreMath, PreWriting, Science, \
+Social, Art, PE, FrenchLang, PnorngLang, KreungLang, KavetLang, \
+KhmerLang, EnglishLang, ICT, BasicPL,"
             )),
         }
     }
@@ -198,11 +311,20 @@ impl fmt::Display for Subjects {
             Subjects::PreWriting => write!(f, "PreWriting"),
             Subjects::Art => write!(f, "Art"),
             Subjects::PE => write!(f, "PE"),
-            Subjects::English => write!(f, "English"),
+            Subjects::EnglishLang => write!(f, "English"),
             Subjects::ICT => write!(f, "ICT"),
-            Subjects::French => write!(f, "French"),
+            Subjects::FrenchLang => write!(f, "French"),
             Subjects::BasicPL => write!(f, "BasicPL"),
             Subjects::None => write!(f, "None"),
+            Subjects::KreungLang => write!(f, "KreungLang"),
+            Subjects::TompounLang => write!(f, "TompounLang"),
+            Subjects::PnorngLang => write!(f, "PnorngLang"),
+            Subjects::KavetLang => write!(f, "KavetLang"),
+            Subjects::KhmerLang => write!(f, "KhmerLang"),
+            Subjects::TeachingGuide => write!(f, "TeachingGuide"),
+            Subjects::ProvLang => write!(f, "ProvLang"),
+            Subjects::FlashCard => write!(f, "FlashCard"),
+            Subjects::Help => write!(f, "Help"),
         }
     }
 }
@@ -215,6 +337,8 @@ pub enum Grades {
     Grade4,
     Grade5,
     Grade6,
+    FolkLore,
+    Help,
     None,
 }
 
@@ -228,17 +352,35 @@ impl Grades {
             Grades::Grade5 => String::from("ថ្នាក់ទី៥"),
             Grades::Grade6 => String::from("ថ្នាក់ទី៦"),
             Grades::None => String::from("ថ្នាក់ទី០"),
+            Grades::FolkLore => String::from("សៀវភៅរឿងនិទាន"),
+            Grades::Help => String::from("ជំនួយ"),
+        }
+    }
+
+    pub fn get_icons(grade: Self) -> String {
+        match grade {
+            Grades::Grade1 => get_value_mutex_safe("GRADE_1_THUMBNAIL"),
+            Grades::Grade2 => get_value_mutex_safe("GRADE_2_THUMBNAIL"),
+            Grades::Grade3 => get_value_mutex_safe("GRADE_3_THUMBNAIL"),
+            Grades::Grade4 => get_value_mutex_safe("GRADE_4_THUMBNAIL"),
+            Grades::Grade5 => get_value_mutex_safe("GRADE_5_THUMBNAIL"),
+            Grades::Grade6 => get_value_mutex_safe("GRADE_6_THUMBNAIL"),
+            Grades::None => get_value_mutex_safe("GRADE_1_THUMBNAIL"),
+            Grades::FolkLore => get_value_mutex_safe("FOLKLORE_THUMBNAIL"),
+            Grades::Help => get_value_mutex_safe("HELP_THUMBNAIL"),
         }
     }
 
     pub fn iterator() -> Iter<'static, Grades> {
-        static GRADES: [Grades; 6] = [
+        static GRADES: [Grades; 8] = [
             self::Grades::Grade1,
             self::Grades::Grade2,
             self::Grades::Grade3,
             self::Grades::Grade4,
             self::Grades::Grade5,
             self::Grades::Grade6,
+            self::Grades::FolkLore,
+            self::Grades::Help,
         ];
         GRADES.iter()
     }
@@ -291,6 +433,12 @@ impl FromStr for Grades {
             "GRADE6" => Ok(Grades::Grade6),
             "GRADE_6" => Ok(Grades::Grade6),
             "6" => Ok(Grades::Grade6),
+            "FOLKLORE" => Ok(Grades::FolkLore),
+            "FolkLore" => Ok(Grades::FolkLore),
+            "folklore" => Ok(Grades::FolkLore),
+            "Help" => Ok(Grades::Help),
+            "HELP" => Ok(Grades::Help),
+            "help" => Ok(Grades::Help),
             "None" => Ok(Grades::None),
             "NONE" => Ok(Grades::None),
             "none" => Ok(Grades::None),
@@ -308,6 +456,8 @@ impl fmt::Display for Grades {
             Grades::Grade4 => write!(f, "Grade4"),
             Grades::Grade5 => write!(f, "Grade5"),
             Grades::Grade6 => write!(f, "Grade6"),
+            Grades::FolkLore => write!(f, "FolkLore"),
+            Grades::Help => write!(f, "Help"),
             Grades::None => write!(f, "None"),
         }
     }
