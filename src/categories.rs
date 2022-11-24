@@ -108,7 +108,7 @@ pub enum Subjects {
 
 impl Subjects {
     pub fn get_basic_iter() -> Iter<'static, Subjects> {
-        static SUBJECTS: [Subjects; 15] = [
+        static SUBJECTS: [Subjects; 16] = [
             self::Subjects::MindMotion,
             self::Subjects::PreMath,
             self::Subjects::PreWriting,
@@ -123,7 +123,8 @@ impl Subjects {
             self::Subjects::TompounLang,
             self::Subjects::KreungLang,
             self::Subjects::KhmerLang,
-            self::Subjects::ProvLang
+            self::Subjects::ProvLang,
+            self::Subjects::TeachingGuide
         ];
         SUBJECTS.iter()
     }
