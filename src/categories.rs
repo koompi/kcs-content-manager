@@ -109,11 +109,6 @@ pub enum Subjects {
 impl Subjects {
     pub fn get_basic_iter() -> Iter<'static, Subjects> {
         static SUBJECTS: [Subjects; 16] = [
-            self::Subjects::MindMotion,
-            self::Subjects::PreMath,
-            self::Subjects::PreWriting,
-            self::Subjects::Art,
-            self::Subjects::PE,
             self::Subjects::FlashCard,
             self::Subjects::EnglishLang,
             self::Subjects::KhmerLang,
@@ -124,7 +119,12 @@ impl Subjects {
             self::Subjects::KreungLang,
             self::Subjects::KhmerLang,
             self::Subjects::ProvLang,
-            self::Subjects::TeachingGuide
+            self::Subjects::TeachingGuide,
+            self::Subjects::MindMotion,
+            self::Subjects::PreMath,
+            self::Subjects::PreWriting,
+            self::Subjects::Art,
+            self::Subjects::PE
         ];
         SUBJECTS.iter()
     }
@@ -154,13 +154,7 @@ impl Subjects {
 
     pub fn iterator() -> Iter<'static, Subjects> {
         static SUBJECTS: [Subjects; 21] = [
-            self::Subjects::MindMotion,
-            self::Subjects::PreMath,
-            self::Subjects::PreWriting,
-            self::Subjects::Science,
-            self::Subjects::Social,
-            self::Subjects::Art,
-            self::Subjects::PE,
+            self::Subjects::TeachingGuide,
             self::Subjects::EnglishLang,
             self::Subjects::KhmerLang,
             self::Subjects::KavetLang,
@@ -170,10 +164,16 @@ impl Subjects {
             self::Subjects::KreungLang,
             self::Subjects::KhmerLang,
             self::Subjects::ProvLang,
+            self::Subjects::FlashCard,
+            self::Subjects::MindMotion,
+            self::Subjects::PreMath,
+            self::Subjects::PreWriting,
+            self::Subjects::Science,
+            self::Subjects::Social,
+            self::Subjects::Art,
+            self::Subjects::PE,
             self::Subjects::ICT,
             self::Subjects::BasicPL,
-            self::Subjects::TeachingGuide,
-            self::Subjects::FlashCard,
             self::Subjects::Help
         ];
         SUBJECTS.iter()
@@ -312,9 +312,9 @@ impl fmt::Display for Subjects {
             Subjects::PreWriting => write!(f, "PreWriting"),
             Subjects::Art => write!(f, "Art"),
             Subjects::PE => write!(f, "PE"),
-            Subjects::EnglishLang => write!(f, "English"),
+            Subjects::EnglishLang => write!(f, "EnglishLang"),
             Subjects::ICT => write!(f, "ICT"),
-            Subjects::FrenchLang => write!(f, "French"),
+            Subjects::FrenchLang => write!(f, "FrenchLang"),
             Subjects::BasicPL => write!(f, "BasicPL"),
             Subjects::None => write!(f, "None"),
             Subjects::KreungLang => write!(f, "KreungLang"),

@@ -1,4 +1,4 @@
-use rusqlite::Rows;
+use rusqlite::{Rows, Error};
 
 use super::{get_value_mutex_safe, params, Connection, Grades, Subjects};
 use crate::{
@@ -205,6 +205,19 @@ pub fn query_from_tbl_contents_with_grade(grade: &str) -> Vec<FileGroup> {
     }
 }
 
+pub fn query_displayname_from_tbl_contents(filename: &str) -> Result<String, Error>  {
+    let database = get_value_mutex_safe("DATABASE");
+    let connection = Connection::open(&database).unwrap();
+
+    let mut stmt = connection
+        .prepare("SELECT DisplayName FROM tblContents WHERE FileName=?")
+        .unwrap();
+
+    stmt.query_row(params![filename], |row| {
+        Ok(row.get::<usize, String>(0).unwrap())
+    })
+}
+
 pub fn query_all_from_tbl_contents() -> Vec<FileGroup> {
     let database = get_value_mutex_safe("DATABASE");
     let connection = Connection::open(&database).unwrap();
@@ -230,7 +243,12 @@ WHERE DisplayName LIKE '%?1%' OR FileType LIKE '%?2%' OR Grade LIKE '%?3%' OR Su
         )
         .unwrap();
 
-    let rows = stmt.query(params![search_string, search_string, search_string, search_string]);
+    let rows = stmt.query(params![
+        search_string,
+        search_string,
+        search_string,
+        search_string
+    ]);
 
     match rows {
         Ok(mut rows) => filter_rows_for_filegroup(&mut rows),
