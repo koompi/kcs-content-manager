@@ -1,6 +1,6 @@
 use super::{
-    db_handler::tbl_contents_handler, error, extract_url_arg, get, Error, FromStr, Grades,
-    HttpRequest, HttpResponse, Subjects,
+    db_handler::tbl_contents_handler, error, extract_url_arg, get, Error, FileType, FromStr,
+    Grades, HttpRequest, HttpResponse, Subjects, SearchParameters, web, SearchResponse
 };
 
 #[get("/public/api/query/{grade}/{subject}/{file_id}")]
@@ -83,14 +83,50 @@ pub async fn query_by_grade(req: HttpRequest) -> Result<HttpResponse, Error> {
     )
 }
 
-#[get("/public/api/search/{search_string}")]
-pub async fn seatch_contents(req: HttpRequest) -> Result<HttpResponse, Error> {
-    let search_string = extract_url_arg(
-        &req,
-        "search_string",
-        String::from("Check if search_string URL Arg is valid"),
-    )?;
-    Ok(HttpResponse::Ok().json(tbl_contents_handler::search_from_tbl_contents(&search_string)))
+#[get("/public/api/search")]
+pub async fn seatch_contents(search_param: web::Query<SearchParameters>) -> Result<HttpResponse, Error> {
+    let search_string = search_param.get_search_string();
+    let name_string = format!("%{}%", search_string);
+    let file_type_string = format!(
+        "%{}%",
+        match FileType::from_str(&search_string) {
+            Ok(t) => t,
+            Err(_) => FileType::None,
+        }
+        .to_string()
+    );
+    let grade_string = format!(
+        "%{}%",
+        match Grades::from_str(&search_string) {
+            Ok(t) => t,
+            Err(_) => Grades::None,
+        }
+        .to_string()
+    );
+    let subject_string = format!(
+        "%{}%",
+        match Subjects::from_str(&search_string) {
+            Ok(t) => t,
+            Err(_) => Subjects::None,
+        }
+        .to_string()
+    );
+    let (row_count, db_query_result) = tbl_contents_handler::search_from_tbl_contents(
+        &name_string,
+        &file_type_string,
+        &grade_string,
+        &subject_string,
+        search_param.get_result_limit(),
+        search_param.get_page_number()
+    );
+    let page_number = match search_param.page_number {
+        Some(t) => t,
+        None => 1
+    };
+    let data_len = row_count/search_param.get_result_limit();
+    Ok(
+        HttpResponse::Ok().json(SearchResponse::new(data_len, page_number, db_query_result)),
+    )
 }
 
 #[get("/public/api/query")]

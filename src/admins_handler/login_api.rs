@@ -1,6 +1,6 @@
 use super::{
-    error, get_value_mutex_safe, post, tbl_admins_handler, validate_password, web, Claims, Error,
-    FromStr, HttpResponse, LoginModel, LoginRole,
+    body, error, get_value_mutex_safe, http, post, tbl_admins_handler, validate_password, web,
+    Claims, Error, FromStr, HttpResponse, LoginModel, LoginRole,
 };
 
 #[post("/public/api/login")]
@@ -32,10 +32,16 @@ pub async fn login(login_args: web::Json<LoginModel>) -> Result<HttpResponse, Er
             username.to_owned(),
             LoginRole::from_str(&current_role).unwrap(),
             timestamp,
-            timestamp + get_value_mutex_safe("TOKEN_EXPIRATION_SEC").parse::<u64>().unwrap(),
+            timestamp
+                + get_value_mutex_safe("TOKEN_EXPIRATION_SEC")
+                    .parse::<u64>()
+                    .unwrap(),
         ),
         &jsonwebtoken::EncodingKey::from_secret(get_value_mutex_safe("DECRYPT_KEY").as_ref()),
     )
     .unwrap();
-    Ok(HttpResponse::Ok().json(token))
+    Ok(HttpResponse::with_body(
+        http::StatusCode::from_u16(200).unwrap(),
+        body::BoxBody::new(token),
+    ))
 }

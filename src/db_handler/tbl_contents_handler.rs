@@ -1,4 +1,4 @@
-use rusqlite::{Rows, Error};
+use rusqlite::{Error, Rows, Statement};
 
 use super::{get_value_mutex_safe, params, Connection, Grades, Subjects};
 use crate::{
@@ -63,7 +63,12 @@ pub fn query_existence_of_file(file_id: &str, grade: &str, subject: &str) -> boo
     let connection = Connection::open(&database).unwrap();
 
     let mut stmt = connection
-        .prepare("SELECT FileID FROM tblContents WHERE FileID=? AND Grade=? AND Subject=? LIMIT 1")
+        .prepare(
+"SELECT FileID FROM tblContents 
+WHERE FileID=? AND 
+Grade=? AND 
+Subject=? 
+LIMIT 1")
         .unwrap();
     stmt.exists(params![file_id, grade, subject]).unwrap()
 }
@@ -74,7 +79,9 @@ pub fn query_file_thumbnail_location_by_id(file_id: &str) -> (String, String) {
 
     let mut stmt = connection
         .prepare(
-            "SELECT FileName,Location,ThumbnailName,ThumbnailLocation FROM tblContents WHERE FileID=?",
+"SELECT FileName,Location,ThumbnailName,ThumbnailLocation 
+FROM tblContents 
+WHERE FileID=?",
         )
         .unwrap();
     stmt.query_row([file_id], |row| {
@@ -99,7 +106,11 @@ pub fn query_file_thumbnail_location(
 
     let mut stmt = connection
         .prepare(
-"SELECT FileName,Location,ThumbnailName,ThumbnailLocation FROM tblContents WHERE FileID=? AND Grade=? AND Subject=?",
+"SELECT FileName,Location,ThumbnailName,ThumbnailLocation 
+FROM tblContents 
+WHERE FileID=? AND 
+Grade=? AND 
+Subject=?",
         )
         .unwrap();
     stmt.query_row([file_id, grade, subject], |row| {
@@ -133,7 +144,12 @@ pub fn query_from_tbl_contents_with_grade_subject_file_id(
     let connection = Connection::open(&database).unwrap();
 
     let mut stmt = connection
-        .prepare("SELECT * FROM tblContents WHERE Grade=? AND Subject=? AND FileID=?")
+        .prepare(
+"SELECT * 
+FROM tblContents 
+WHERE Grade=? AND 
+Subject=? AND 
+FileID=?")
         .unwrap();
 
     stmt.query_row([grade, subject, file_id], |row| {
@@ -205,7 +221,7 @@ pub fn query_from_tbl_contents_with_grade(grade: &str) -> Vec<FileGroup> {
     }
 }
 
-pub fn query_displayname_from_tbl_contents(filename: &str) -> Result<String, Error>  {
+pub fn query_displayname_from_tbl_contents(filename: &str) -> Result<String, Error> {
     let database = get_value_mutex_safe("DATABASE");
     let connection = Connection::open(&database).unwrap();
 
@@ -232,27 +248,86 @@ pub fn query_all_from_tbl_contents() -> Vec<FileGroup> {
     }
 }
 
-pub fn search_from_tbl_contents(search_string: &str) -> Vec<FileGroup> {
+pub fn search_from_tbl_contents(
+    name_string: &str,
+    file_type_string: &str,
+    grade_string: &str,
+    subject_string: &str,
+    result_limit: &u32,
+    page_number: Option<u32>,
+) -> (u32, Vec<FileGroup>) {
     let database = get_value_mutex_safe("DATABASE");
     let connection = Connection::open(&database).unwrap();
 
-    let mut stmt = connection
+    let mut stmt: Statement = connection
         .prepare(
-            "SELECT * FROM tblContents 
-WHERE DisplayName LIKE '%?1%' OR FileType LIKE '%?2%' OR Grade LIKE '%?3%' OR Subject LIKE '%?4%'",
+"SELECT COUNT(*) 
+FROM tblContents 
+WHERE DisplayName LIKE ? OR 
+FileType LIKE ? OR 
+Grade LIKE ? OR 
+Subject LIKE ?",
         )
         .unwrap();
 
-    let rows = stmt.query(params![
-        search_string,
-        search_string,
-        search_string,
-        search_string
-    ]);
+    let row_count = stmt
+        .query_row(
+            params![name_string, file_type_string, grade_string, subject_string,],
+            |row| Ok(row.get::<usize, u32>(0).unwrap()),
+        )
+        .unwrap();
+
+    let rows = match page_number {
+        Some(page_number) => {
+            stmt = connection
+                .prepare(
+"SELECT * 
+FROM tblContents 
+WHERE DisplayName LIKE ? OR 
+FileType LIKE ? OR 
+Grade LIKE ? OR 
+Subject LIKE ? 
+LIMIT ? 
+OFFSET ?",
+                )
+                .unwrap();
+            stmt.query(params![
+                name_string,
+                file_type_string,
+                grade_string,
+                subject_string,
+                result_limit,
+                (page_number - 1) * result_limit
+            ])
+        }
+        None => {
+            stmt = connection
+                .prepare(
+"SELECT * 
+FROM tblContents 
+WHERE DisplayName LIKE ? 
+OR FileType LIKE ? OR 
+Grade LIKE ? OR 
+Subject LIKE ? 
+LIMIT ?",
+                )
+                .unwrap();
+            stmt.query(params![
+                name_string,
+                file_type_string,
+                grade_string,
+                subject_string,
+                result_limit,
+            ])
+        }
+    };
 
     match rows {
-        Ok(mut rows) => filter_rows_for_filegroup(&mut rows),
-        Err(_) => Vec::new(),
+        Ok(mut rows) => (row_count, filter_rows_for_filegroup(&mut rows)),
+        Err(err) => {
+            println!("{}", err);
+            (row_count, Vec::new())
+        }
     }
 }
 

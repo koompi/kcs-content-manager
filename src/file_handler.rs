@@ -1,12 +1,43 @@
-use super::FromStr;
 use super::{
-    categories::{Grades, Subjects},
+    categories::{Grades, Subjects}, FromStr,
     db_handler,
-    file_property::{FileRole, FileType}, db_handler::tbl_admins_handler,
-    get_value_mutex_safe, Serialize, admins_handler::validate_token
+    file_property::{FileRole, FileType}, db_handler::tbl_admins_handler, Deserialize,
+    get_value_mutex_safe, Serialize, admins_handler::validate_token,
 };
 use actix_multipart::{Field, Multipart};
-use actix_web::{delete, error, post, Error, HttpRequest, HttpResponse, get};
+use actix_web::{delete, error, post, Error, HttpRequest, HttpResponse, get, web};
+
+#[derive(Deserialize)]
+pub struct SearchParameters {
+    search_string: String,
+    result_limit: u32,
+    page_number: Option<u32>
+}
+impl SearchParameters {
+    pub fn get_search_string(&self) -> &str {
+        &self.search_string
+    }
+    pub fn get_result_limit(&self) -> &u32 {
+        &self.result_limit
+    }
+    pub fn get_page_number(&self) -> Option<u32> {
+        self.page_number
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct SearchResponse {
+    page_count: u32,
+    current_page_number: u32,
+    data: Vec<FileGroup>
+}
+impl SearchResponse {
+    pub fn new(page_count: u32, current_page_number: u32, data: Vec<FileGroup>) -> Self {
+        Self {
+            page_count, current_page_number, data
+        }
+    }
+}
 
 #[derive(Debug, Serialize)]
 pub struct FileGroup {

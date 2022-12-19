@@ -13,18 +13,12 @@ impl FromStr for FileType {
 
     fn from_str(input: &str) -> Result<FileType, Self::Err> {
         match input {
-            "PDF" => Ok(FileType::PDF),
-            "pdf" => Ok(FileType::PDF),
-            "Pdf" => Ok(FileType::PDF),
-            "Video" => Ok(FileType::Video),
-            "VIDEO" => Ok(FileType::Video),
-            "video" => Ok(FileType::Video),
-            "Audio" => Ok(FileType::Audio),
-            "AUDIO" => Ok(FileType::Audio),
-            "audio" => Ok(FileType::Audio),
-            "None" => Ok(FileType::None),
-            "NONE" => Ok(FileType::None),
-            "none" => Ok(FileType::None),
+            "PDF" | "pdf" | "Pdf" => Ok(FileType::PDF),
+            "Video" | "VIDEO" | "វីដេអូ" | "video" => Ok(FileType::Video),
+            "Audio" | "AUDIO" | "សម្លេង" | "សំឡេង" | "audio" => {
+                Ok(FileType::Audio)
+            }
+            "None" | "NONE" | "none" => Ok(FileType::None),
             _ => Err(String::from("Mismatch Type: PDF, Video, Audio")),
         }
     }

@@ -1,9 +1,11 @@
-use super::{db_handler::tbl_admins_handler, get_value_mutex_safe, Deserialize, Serialize, file_handler};
-use actix_web::{delete, error, post, put, web, Error, HttpRequest, HttpResponse, get};
+use super::{
+    db_handler::tbl_admins_handler, file_handler, get_value_mutex_safe, Deserialize, Serialize, FromStr
+};
+use actix_web::{delete, error, get, post, put, web, Error, HttpRequest, HttpResponse, body, http};
 use bcrypt::verify;
-use std::{fmt, str::FromStr};
+use std::fmt;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct AdminsInfo {
     user_id: Option<String>,
     display_name: Option<String>,
@@ -25,7 +27,7 @@ impl AdminsInfo {
             display_name,
             username,
             password,
-            role
+            role,
         }
     }
 }
@@ -36,7 +38,7 @@ pub struct LoginModel {
     password: String,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum LoginRole {
     Admin,
     Root,
@@ -48,15 +50,9 @@ impl FromStr for LoginRole {
 
     fn from_str(input: &str) -> Result<LoginRole, Self::Err> {
         match input {
-            "Admin" => Ok(LoginRole::Admin),
-            "ADMIN" => Ok(LoginRole::Admin),
-            "admin" => Ok(LoginRole::Admin),
-            "ROOT" => Ok(LoginRole::Root),
-            "Root" => Ok(LoginRole::Root),
-            "root" => Ok(LoginRole::Root),
-            "None" => Ok(LoginRole::None),
-            "NONE" => Ok(LoginRole::None),
-            "none" => Ok(LoginRole::None),
+            "Admin" | "ADMIN" | "រដ្ឋបាល" | "admin" => Ok(LoginRole::Admin),
+            "ROOT" | "Root" | "root" => Ok(LoginRole::Root),
+            "None" | "NONE" | "none" => Ok(LoginRole::None),
             _ => Err(String::from("Mismatch role: Admin, Root")),
         }
     }
@@ -91,6 +87,20 @@ impl Claims {
             role,
             iat,
             exp,
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct SearchResponse {
+    page_count: u32,
+    current_page_number: u32,
+    data: Vec<AdminsInfo>
+}
+impl SearchResponse {
+    pub fn new(page_count: u32, current_page_number: u32, data: Vec<AdminsInfo>) -> Self {
+        Self {
+            page_count, current_page_number, data
         }
     }
 }

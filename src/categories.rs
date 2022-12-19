@@ -1,9 +1,9 @@
-use super::{fmt, FromStr, Serialize, get_value_mutex_safe};
+use super::{fmt, get_value_mutex_safe, FromStr, Serialize};
+use actix_web::{get, Error, HttpResponse};
 use std::slice::Iter;
-use actix_web::{Error, HttpResponse, get};
 
 #[derive(Serialize)]
-pub struct SideBarCategory {
+struct SideBarCategory {
     category_id: String,
     category_display_name: String,
     icon: String,
@@ -30,7 +30,7 @@ impl SideBarCategory {
 }
 
 #[derive(Serialize)]
-pub struct SideBarSubCategory {
+struct SideBarSubCategory {
     subcategory_id: String,
     subcategory_display_name: String,
 }
@@ -57,8 +57,7 @@ impl SideBarSubCategory {
                     subcategory_display_name,
                 })
             })
-        }
-        else if grade == Grades::Grade1 || grade == Grades::Grade2 || grade == Grades::Grade3 {
+        } else if grade == Grades::Grade1 || grade == Grades::Grade2 || grade == Grades::Grade3 {
             Subjects::get_basic_iter().for_each(|each| {
                 let subcategory_id = each.to_string();
                 let subcategory_display_name = Subjects::get_kh(each.to_owned());
@@ -124,7 +123,7 @@ impl Subjects {
             self::Subjects::PreMath,
             self::Subjects::PreWriting,
             self::Subjects::Art,
-            self::Subjects::PE
+            self::Subjects::PE,
         ];
         SUBJECTS.iter()
     }
@@ -146,9 +145,7 @@ impl Subjects {
     }
 
     pub fn get_help_iter() -> Iter<'static, Subjects> {
-        static SUBJECTS: [Subjects; 1] = [
-            self::Subjects::Help,
-        ];
+        static SUBJECTS: [Subjects; 1] = [self::Subjects::Help];
         SUBJECTS.iter()
     }
 
@@ -174,7 +171,7 @@ impl Subjects {
             self::Subjects::PE,
             self::Subjects::ICT,
             self::Subjects::BasicPL,
-            self::Subjects::Help
+            self::Subjects::Help,
         ];
         SUBJECTS.iter()
     }
@@ -191,14 +188,14 @@ impl Subjects {
             Subjects::FrenchLang => String::from("ភាសាបារាំង"),
             Subjects::EnglishLang => String::from("ភាសាអង់គ្លេស"),
             Subjects::KreungLang => String::from("ភាសាគ្រឹង"),
-            Subjects::TompounLang => String::from("ភាសាទំពួន"),
             Subjects::PnorngLang => String::from("ភាសាព្នង"),
             Subjects::KavetLang => String::from("ភាសាកាវែត"),
+            Subjects::TompounLang => String::from("ភាសាទំពួន"),
+            Subjects::ProvLang => String::from("ភាសាព្រៅ"),
             Subjects::KhmerLang => String::from("ភាសាខ្មែរ"),
             Subjects::ICT => String::from("ព័ត៌មានវិទ្យា"),
             Subjects::BasicPL => String::from("បំណិនជីវិតមូលដ្ឋាន"),
             Subjects::TeachingGuide => String::from("សៀវភៅមគ្គុទេសគ្រូថ្នាក់អប់រំពហុភាសា"),
-            Subjects::ProvLang => String::from("ភាសាព្រៅ"),
             Subjects::FlashCard => String::from("កាតប្លាស់"),
             Subjects::Help => String::from("ជំនួយ"),
             Subjects::None => String::from(""),
@@ -211,92 +208,80 @@ impl FromStr for Subjects {
 
     fn from_str(input: &str) -> Result<Subjects, Self::Err> {
         match input {
-            "MindMotion" => Ok(Subjects::MindMotion),
-            "mindmotion" => Ok(Subjects::MindMotion),
-            "MINDMOTION" => Ok(Subjects::MindMotion),
-            "PreMath" => Ok(Subjects::PreMath),
-            "PREMATH" => Ok(Subjects::PreMath),
-            "premath" => Ok(Subjects::PreMath),
-            "PreWriting" => Ok(Subjects::PreWriting),
-            "prewriting" => Ok(Subjects::PreWriting),
-            "PREWRITING" => Ok(Subjects::PreWriting),
-            "Pre-Math" => Ok(Subjects::PreMath),
-            "PRE-MATH" => Ok(Subjects::PreMath),
-            "pre-math" => Ok(Subjects::PreMath),
-            "Pre-Writing" => Ok(Subjects::PreWriting),
-            "pre-writing" => Ok(Subjects::PreWriting),
-            "PRE-WRITING" => Ok(Subjects::PreWriting),
-            "Art" => Ok(Subjects::Art),
-            "ART" => Ok(Subjects::Art),
-            "art" => Ok(Subjects::Art),
-            "PE" => Ok(Subjects::PE),
-            "pe" => Ok(Subjects::PE),
-            "PhysicalEducation" => Ok(Subjects::PE),
-            "physicaleducation" => Ok(Subjects::PE),
-            "PHYSICALEDUCATION" => Ok(Subjects::PE),
-            "PhysicalEd" => Ok(Subjects::PE),
-            "physicaled" => Ok(Subjects::PE),
-            "PHYSICALED" => Ok(Subjects::PE),
-            "Science" => Ok(Subjects::Science),
-            "SCIENCE" => Ok(Subjects::Science),
-            "science" => Ok(Subjects::Science),
-            "SOCIAL" => Ok(Subjects::Social),
-            "social" => Ok(Subjects::Social),
-            "Social" => Ok(Subjects::Social),
-            "FrenchLang" => Ok(Subjects::FrenchLang),
-            "frenchlang" => Ok(Subjects::FrenchLang),
-            "FRENCHLANG" => Ok(Subjects::FrenchLang),
-            "EnglishLang" => Ok(Subjects::EnglishLang),
-            "ENGLISHLANG" => Ok(Subjects::EnglishLang),
-            "englishlang" => Ok(Subjects::EnglishLang),
-            "KreungLang" => Ok(Subjects::KreungLang),
-            "KREUNGLANG" => Ok(Subjects::KreungLang),
-            "kreunglang" => Ok(Subjects::KreungLang),
-            "PnorngLang" => Ok(Subjects::PnorngLang),
-            "PNORGLANG" => Ok(Subjects::PnorngLang),
-            "pnorglang" => Ok(Subjects::PnorngLang),
-            "KhmerLang" => Ok(Subjects::KhmerLang),
-            "KHMERLANG" => Ok(Subjects::KhmerLang),
-            "khmerlang" => Ok(Subjects::KhmerLang),
-            "KavetLang" => Ok(Subjects::KavetLang),
-            "KAVETLANG" => Ok(Subjects::KavetLang),
-            "kavetlang" => Ok(Subjects::KavetLang),
-            "TompounLang" => Ok(Subjects::TompounLang),
-            "TOMPOUNLANG" => Ok(Subjects::TompounLang),
-            "tompounlang" => Ok(Subjects::TompounLang),
-            "ProvLang" => Ok(Subjects::ProvLang),
-            "PROVLANG" => Ok(Subjects::ProvLang),
-            "provlang" => Ok(Subjects::ProvLang), 
-            "ICT" => Ok(Subjects::ICT),
-            "ict" => Ok(Subjects::ICT),
-            "informationcommunicationtechnology" => Ok(Subjects::ICT),
-            "InformationCommunicationTechnology" => Ok(Subjects::ICT),
-            "information_communication_technology" => Ok(Subjects::ICT),
-            "Information_Communication_Technology" => Ok(Subjects::ICT),
-            "BasicPL" => Ok(Subjects::BasicPL),
-            "BASICPL" => Ok(Subjects::BasicPL),
-            "basicpl" => Ok(Subjects::BasicPL),
-            "basicPL" => Ok(Subjects::BasicPL),
-            "basicProfessionalLife" => Ok(Subjects::BasicPL),
-            "basicprofessionallife" => Ok(Subjects::BasicPL),
-            "BasicProfessionalLife" => Ok(Subjects::BasicPL),
-            "Basic_Professional_Life" => Ok(Subjects::BasicPL),
-            "TeachingGuide" => Ok(Subjects::TeachingGuide),
-            "TEACHINGGUIDE" => Ok(Subjects::TeachingGuide),
-            "teachingguide" => Ok(Subjects::TeachingGuide),
-            "FlashCard" => Ok(Subjects::FlashCard),
-            "FLASHCARD" => Ok(Subjects::FlashCard),
-            "flashcard" => Ok(Subjects::FlashCard),
-            "Help" => Ok(Subjects::Help),
-            "HELP" => Ok(Subjects::Help),
-            "help" => Ok(Subjects::Help),
-            "None" => Ok(Subjects::None),
-            "NONE" => Ok(Subjects::None),
-            "none" => Ok(Subjects::None),
+            "MindMotion" | "mindmotion" | "MINDMOTION" | "ចិត្តចលភាព" => {
+                Ok(Subjects::MindMotion)
+            }
+            "PreMath" | "PREMATH" | "premath" | "បុរេគណិត" => Ok(Subjects::PreMath),
+            "PreWriting" | "prewriting" | "PREWRITING" | "បុរេសំណេរ" => {
+                Ok(Subjects::PreWriting)
+            }
+            "Science" | "SCIENCE" | "science" | "វិទ្យាសាស្រ្ត" => {
+                Ok(Subjects::Science)
+            }
+            "SOCIAL" | "social" | "Social" | "សង្គម" => Ok(Subjects::Social),
+            "Art" | "ART" | "art" | "អប់រំសិល្បៈ" => Ok(Subjects::Art),
+            "PE"
+            | "pe"
+            | "PhysicalEducation"
+            | "physicaleducation"
+            | "PHYSICALEDUCATION"
+            | "PhysicalEd"
+            | "physicaled"
+            | "PHYSICALED"
+            | "អប់រំកាយនិងកីឡា" => Ok(Subjects::PE),
+            "FrenchLang" | "frenchlang" | "FRENCHLANG" | "ភាសាបារាំង" | "បារាំង" => {
+                Ok(Subjects::FrenchLang)
+            }
+            "EnglishLang" | "ENGLISHLANG" | "englishlang" | "ភាសាអង់គ្លេស" | "អង់គ្លេស"=> {
+                Ok(Subjects::EnglishLang)
+            }
+            "KreungLang" | "KREUNGLANG" | "kreunglang" | "ភាសាគ្រឹង" | "គ្រឹង" => {
+                Ok(Subjects::KreungLang)
+            }
+            "PnorngLang" | "PNORGLANG" | "pnorglang" | "ភាសាព្នង" | "ព្នង"=> {
+                Ok(Subjects::PnorngLang)
+            }
+            "KavetLang" | "KAVETLANG" | "kavetlang" | "ភាសាកាវែត" | "កាវែត" => {
+                Ok(Subjects::KavetLang)
+            }
+            "TompounLang" | "TOMPOUNLANG" | "tompounlang" | "ភាសាទំពួន" | "ទំពួន" => {
+                Ok(Subjects::TompounLang)
+            }
+            "ProvLang" | "PROVLANG" | "provlang" | "ភាសាព្រៅ" | "ព្រៅ" => {
+                Ok(Subjects::ProvLang)
+            }
+            "KhmerLang" | "KHMERLANG" | "khmerlang" | "ភាសាខ្មែរ" | "ខ្មែរ" => {
+                Ok(Subjects::KhmerLang)
+            }
+            "ICT"
+            | "ict"
+            | "ព័ត៌មានវិទ្យា"
+            | "ពត៌មានវិទ្យា"
+            | "informationcommunicationtechnology"
+            | "InformationCommunicationTechnology"
+            | "information_communication_technology"
+            | "Information_Communication_Technology" => Ok(Subjects::ICT),
+            "BasicPL"
+            | "បំណិនជីវិតមូលដ្ឋាន"
+            | "BASICPL"
+            | "basicpl"
+            | "basicPL"
+            | "basicProfessionalLife"
+            | "basicprofessionallife"
+            | "BasicProfessionalLife"
+            | "Basic_Professional_Life" => Ok(Subjects::BasicPL),
+            "TeachingGuide" | "TEACHINGGUIDE" | "teachingguide" | "សៀវភៅមគ្គុទេសគ្រូថ្នាក់អប់រំពហុភាសា" | "គ្រូ" => {
+                Ok(Subjects::TeachingGuide)
+            }
+            "FlashCard" | "FLASHCARD" | "flashcard" | "កាតប្លាស់" => {
+                Ok(Subjects::FlashCard)
+            }
+            "Help" | "HELP" | "help" | "ជំនួយ" => Ok(Subjects::Help),
+            "None" | "NONE" | "none" => Ok(Subjects::None),
             _ => Err(String::from(
-"Mismatch type: MindMotion, PreMath, PreWriting, Science, \
+                "Mismatch type: MindMotion, PreMath, PreWriting, Science, \
 Social, Art, PE, FrenchLang, PnorngLang, KreungLang, KavetLang, \
-KhmerLang, EnglishLang, ICT, BasicPL,"
+KhmerLang, EnglishLang, ICT, BasicPL,",
             )),
         }
     }
@@ -392,57 +377,29 @@ impl FromStr for Grades {
 
     fn from_str(input: &str) -> Result<Grades, Self::Err> {
         match input {
-            "Grade1" => Ok(Grades::Grade1),
-            "grade1" => Ok(Grades::Grade1),
-            "grade_1" => Ok(Grades::Grade1),
-            "Grade_1" => Ok(Grades::Grade1),
-            "GRADE1" => Ok(Grades::Grade1),
-            "GRADE_1" => Ok(Grades::Grade1),
-            "1" => Ok(Grades::Grade1),
-            "Grade2" => Ok(Grades::Grade2),
-            "grade2" => Ok(Grades::Grade2),
-            "grade_2" => Ok(Grades::Grade2),
-            "Grade_2" => Ok(Grades::Grade2),
-            "GRADE2" => Ok(Grades::Grade2),
-            "GRADE_2" => Ok(Grades::Grade2),
-            "2" => Ok(Grades::Grade2),
-            "Grade3" => Ok(Grades::Grade3),
-            "grade3" => Ok(Grades::Grade3),
-            "grade_3" => Ok(Grades::Grade3),
-            "Grade_3" => Ok(Grades::Grade3),
-            "GRADE3" => Ok(Grades::Grade3),
-            "GRADE_3" => Ok(Grades::Grade3),
-            "3" => Ok(Grades::Grade3),
-            "Grade4" => Ok(Grades::Grade4),
-            "grade4" => Ok(Grades::Grade4),
-            "grade_4" => Ok(Grades::Grade4),
-            "Grade_4" => Ok(Grades::Grade4),
-            "GRADE4" => Ok(Grades::Grade4),
-            "GRADE_4" => Ok(Grades::Grade4),
-            "4" => Ok(Grades::Grade4),
-            "Grade5" => Ok(Grades::Grade5),
-            "grade5" => Ok(Grades::Grade5),
-            "grade_5" => Ok(Grades::Grade5),
-            "Grade_5" => Ok(Grades::Grade5),
-            "GRADE5" => Ok(Grades::Grade5),
-            "GRADE_5" => Ok(Grades::Grade5),
-            "5" => Ok(Grades::Grade5),
-            "Grade6" => Ok(Grades::Grade6),
-            "grade6" => Ok(Grades::Grade6),
-            "grade_6" => Ok(Grades::Grade6),
-            "Grade_6" => Ok(Grades::Grade6),
-            "GRADE6" => Ok(Grades::Grade6),
-            "GRADE_6" => Ok(Grades::Grade6),
-            "6" => Ok(Grades::Grade6),
-            "FOLKLORE" => Ok(Grades::FolkLore),
-            "FolkLore" => Ok(Grades::FolkLore),
-            "folklore" => Ok(Grades::FolkLore),
-            "Help" => Ok(Grades::Help),
-            "HELP" => Ok(Grades::Help),
-            "help" => Ok(Grades::Help),
-            "None" => Ok(Grades::None),
-            "NONE" => Ok(Grades::None),
-            "none" => Ok(Grades::None),
+            "Grade1" | "grade1" | "grade_1" | "Grade_1" | "GRADE1" | "GRADE_1" | "ថ្នាក់ទី១" | "1" => {
+                Ok(Grades::Grade1)
+            }
+            "Grade2" | "grade2" | "grade_2" | "Grade_2" | "GRADE2" | "GRADE_2" | "ថ្នាក់ទី២" | "2" => {
+                Ok(Grades::Grade2)
+            }
+            "Grade3" | "grade3" | "grade_3" | "Grade_3" | "GRADE3" | "GRADE_3" | "ថ្នាក់ទី៣" | "3" => {
+                Ok(Grades::Grade3)
+            }
+            "Grade4" | "grade4" | "grade_4" | "Grade_4" | "GRADE4" | "GRADE_4" | "ថ្នាក់ទី៤" | "4" => {
+                Ok(Grades::Grade4)
+            }
+            "Grade5" | "grade5" | "grade_5" | "Grade_5" | "GRADE5" | "GRADE_5" | "ថ្នាក់ទី៥" | "5" => {
+                Ok(Grades::Grade5)
+            }
+            "Grade6" | "grade6" | "grade_6" | "Grade_6" | "GRADE6" | "GRADE_6" | "ថ្នាក់ទី៦" | "6" => {
+                Ok(Grades::Grade6)
+            }
+            "FOLKLORE" | "FolkLore" | "សៀវភៅរឿងនិទាន" | "folklore" => {
+                Ok(Grades::FolkLore)
+            }
+            "Help" | "HELP" | "ជំនួយ" | "help" => Ok(Grades::Help),
+            "None" | "NONE" | "none" => Ok(Grades::None),
             _ => Err(String::from("Mismatch type: 1, 2, 3, 4, 5, 6")),
         }
     }

@@ -1,6 +1,6 @@
 use super::{
-    error, get, tbl_admins_handler, validate_token, Error, HttpRequest,
-    HttpResponse, file_handler
+    error, file_handler, get, tbl_admins_handler, validate_token, web, Error, FromStr, HttpRequest,
+    HttpResponse, LoginRole, SearchResponse,
 };
 
 #[get("/private/api/admin/query")]
@@ -17,12 +17,10 @@ pub async fn query_all_admin(req: HttpRequest) -> Result<HttpResponse, Error> {
         true => Ok(()),
         false => Err(error::ErrorInternalServerError(String::from(
             "This Root doesn't exists",
-        )))
+        ))),
     }?;
 
-    Ok(HttpResponse::Ok().json(
-        tbl_admins_handler::query_all_from_tbl_admins()
-    ))
+    Ok(HttpResponse::Ok().json(tbl_admins_handler::query_all_from_tbl_admins()))
 }
 
 #[get("/private/api/admin/query/{user_id}")]
@@ -39,7 +37,7 @@ pub async fn query_admin_by_id(req: HttpRequest) -> Result<HttpResponse, Error> 
         true => Ok(()),
         false => Err(error::ErrorInternalServerError(String::from(
             "This Root doesn't exists",
-        )))
+        ))),
     }?;
 
     let user_id = &file_handler::extract_url_arg(
@@ -55,13 +53,14 @@ pub async fn query_admin_by_id(req: HttpRequest) -> Result<HttpResponse, Error> 
         ))),
     }?;
 
-    Ok(HttpResponse::Ok().json(
-        tbl_admins_handler::query_from_tbl_admins_by_id(&user_id)
-    ))
+    Ok(HttpResponse::Ok().json(tbl_admins_handler::query_from_tbl_admins_by_id(&user_id)))
 }
 
-#[get("/private/api/admin/search/{search_string}")]
-pub async fn search_admin(req: HttpRequest) -> Result<HttpResponse, Error> {
+#[get("/private/api/admin/search")]
+pub async fn search_admin(
+    req: HttpRequest,
+    search_parameter: web::Query<file_handler::SearchParameters>,
+) -> Result<HttpResponse, Error> {
     let (_, claims) = match validate_token(&req) {
         Ok((role, claims)) => Ok((role, claims)),
         Err((code, message)) => match code {
@@ -74,16 +73,32 @@ pub async fn search_admin(req: HttpRequest) -> Result<HttpResponse, Error> {
         true => Ok(()),
         false => Err(error::ErrorInternalServerError(String::from(
             "This Root doesn't exists",
-        )))
+        ))),
     }?;
 
-    let search_string = &file_handler::extract_url_arg(
-        &req,
-        "search_string",
-        String::from("Check if search_string URL Arg is valid"),
-    )?;
+    let name_string = format!("%{}%", search_parameter.get_search_string());
+    let role_string = format!(
+        "%{}%",
+        match LoginRole::from_str(&name_string) {
+            Ok(t) => t,
+            Err(_) => LoginRole::None,
+        }
+        .to_string()
+    );
 
-    Ok(HttpResponse::Ok().json(
-        tbl_admins_handler::search_from_tbl_admins(&search_string)
-    ))
+    let (row_count, db_query_result) = tbl_admins_handler::search_from_tbl_admins(
+        &name_string,
+        &name_string,
+        &role_string,
+        search_parameter.get_result_limit(),
+        search_parameter.get_page_number(),
+    );
+
+    let page_number = match search_parameter.get_page_number() {
+        Some(t) => t,
+        None => 1,
+    };
+    let data_len = row_count / search_parameter.get_result_limit();
+
+    Ok(HttpResponse::Ok().json(SearchResponse::new(data_len, page_number, db_query_result)))
 }

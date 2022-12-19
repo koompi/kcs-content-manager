@@ -35,7 +35,9 @@ pub fn update_tbl_admins_where(
     Connection::open(&database)
     .unwrap()
     .execute(
-        "UPDATE tblAdmins SET DisplayName=?2, UserName=?3, PasswordHash=?4, Role=?5 WHERE UserID=?1",
+"UPDATE tblAdmins 
+SET DisplayName=?2, UserName=?3, PasswordHash=?4, Role=?5 
+WHERE UserID=?1",
         params![
             user_id,
             display_name,
@@ -200,18 +202,74 @@ pub fn query_from_tbl_admins_by_id(user_id: &str) -> AdminsInfo {
     .unwrap()
 }
 
-pub fn search_from_tbl_admins(search_string: &str) -> Vec<AdminsInfo> {
+pub fn search_from_tbl_admins(
+    username_string: &str,
+    disp_name_string: &str,
+    role_string: &str,
+    result_limit: &u32,
+    page_number: Option<u32>,
+) -> (u32, Vec<AdminsInfo>) {
     let database = get_value_mutex_safe("DATABASE");
     let connection = Connection::open(&database).unwrap();
 
     let mut stmt = connection
         .prepare(
-            "SELECT UserID,DisplayName,UserName,Role FROM tblAdmins
-WHERE Username LIKE %?1% OR DisplayName LIKE %?2% OR Role LIKE %?3%",
+"SELECT COUNT(*) 
+FROM tblAdmins
+WHERE Username LIKE ?1 OR 
+DisplayName LIKE ?2 OR 
+Role LIKE ?3",
         )
         .unwrap();
 
-    let rows = stmt.query(params![search_string, search_string, search_string]);
+    let row_count = stmt
+        .query_row(
+            params![username_string, disp_name_string, role_string,],
+            |row| Ok(row.get::<usize, u32>(0).unwrap()),
+        )
+        .unwrap();
+
+    let rows = match page_number {
+        Some(page_number) => {
+            stmt = connection
+                .prepare(
+"SELECT UserID,DisplayName,UserName,Role 
+FROM tblAdmins
+WHERE Username LIKE ?1 OR 
+DisplayName LIKE ?2 OR 
+Role LIKE ?3 
+LIMIT ? 
+OFFSET ?",
+                )
+                .unwrap();
+            stmt.query(params![
+                username_string,
+                disp_name_string,
+                role_string,
+                result_limit,
+                (page_number - 1) * result_limit
+            ])
+        }
+        None => {
+            stmt = connection
+                .prepare(
+"SELECT UserID,DisplayName,UserName,Role 
+FROM tblAdmins
+WHERE Username LIKE ?1 OR 
+DisplayName LIKE ?2 OR 
+Role LIKE ?3 
+LIMIT ?",
+                )
+                .unwrap();
+            stmt.query(params![
+                username_string,
+                disp_name_string,
+                role_string,
+                result_limit,
+            ])
+        }
+    };
+
     let mut admin_lists: Vec<AdminsInfo> = Vec::new();
 
     if let Ok(mut rows) = rows {
@@ -231,5 +289,5 @@ WHERE Username LIKE %?1% OR DisplayName LIKE %?2% OR Role LIKE %?3%",
         }
     }
 
-    admin_lists
+    (row_count, admin_lists)
 }
