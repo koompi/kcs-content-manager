@@ -98,7 +98,12 @@ pub async fn search_admin(
         Some(t) => t,
         None => 1,
     };
-    let data_len = row_count / search_parameter.get_result_limit();
+    
+    let mut data_len = row_count / search_parameter.get_result_limit();
+
+    if  (data_len * search_parameter.get_result_limit()) != row_count  {
+        data_len = data_len + 1;
+    }
 
     Ok(HttpResponse::Ok().json(SearchResponse::new(data_len, page_number, db_query_result)))
 }
