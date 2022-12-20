@@ -1,5 +1,4 @@
-use super::{fmt, get_value_mutex_safe, FromStr, Serialize};
-use actix_web::{get, Error, HttpResponse};
+use super::{fmt, get, get_value_mutex_safe, Error, FromStr, HttpResponse, Serialize};
 use std::slice::Iter;
 
 #[derive(Serialize)]
@@ -232,13 +231,13 @@ impl FromStr for Subjects {
             "FrenchLang" | "frenchlang" | "FRENCHLANG" | "ភាសាបារាំង" | "បារាំង" => {
                 Ok(Subjects::FrenchLang)
             }
-            "EnglishLang" | "ENGLISHLANG" | "englishlang" | "ភាសាអង់គ្លេស" | "អង់គ្លេស"=> {
+            "EnglishLang" | "ENGLISHLANG" | "englishlang" | "ភាសាអង់គ្លេស" | "អង់គ្លេស" => {
                 Ok(Subjects::EnglishLang)
             }
             "KreungLang" | "KREUNGLANG" | "kreunglang" | "ភាសាគ្រឹង" | "គ្រឹង" => {
                 Ok(Subjects::KreungLang)
             }
-            "PnorngLang" | "PNORGLANG" | "pnorglang" | "ភាសាព្នង" | "ព្នង"=> {
+            "PnorngLang" | "PNORGLANG" | "pnorglang" | "ភាសាព្នង" | "ព្នង" => {
                 Ok(Subjects::PnorngLang)
             }
             "KavetLang" | "KAVETLANG" | "kavetlang" | "ភាសាកាវែត" | "កាវែត" => {
@@ -270,9 +269,11 @@ impl FromStr for Subjects {
             | "basicprofessionallife"
             | "BasicProfessionalLife"
             | "Basic_Professional_Life" => Ok(Subjects::BasicPL),
-            "TeachingGuide" | "TEACHINGGUIDE" | "teachingguide" | "សៀវភៅមគ្គុទេសគ្រូថ្នាក់អប់រំពហុភាសា" | "គ្រូ" => {
-                Ok(Subjects::TeachingGuide)
-            }
+            "TeachingGuide"
+            | "TEACHINGGUIDE"
+            | "teachingguide"
+            | "សៀវភៅមគ្គុទេសគ្រូថ្នាក់អប់រំពហុភាសា"
+            | "គ្រូ" => Ok(Subjects::TeachingGuide),
             "FlashCard" | "FLASHCARD" | "flashcard" | "កាតប្លាស់" => {
                 Ok(Subjects::FlashCard)
             }

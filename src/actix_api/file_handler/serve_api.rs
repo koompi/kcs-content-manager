@@ -1,8 +1,9 @@
-use super::{db_handler, error, extract_url_arg, get, Error, HttpRequest};
-use actix_files::NamedFile;
-use actix_web::http::header::{
-    Charset, ContentDisposition, DispositionParam, DispositionType, ExtendedValue,
+use super::{
+    db_handler, error, extract_url_arg, get,
+    http::header::{Charset, ContentDisposition, DispositionParam, DispositionType, ExtendedValue},
+    Error, HttpRequest,
 };
+use actix_files::NamedFile;
 
 #[get("/{file:.*}")]
 pub async fn get_file(req: HttpRequest) -> Result<NamedFile, Error> {

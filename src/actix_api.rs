@@ -1,18 +1,16 @@
-use super::{
-    categories::{Grades, Subjects}, FromStr,
-    db_handler,
-    file_property::{FileRole, FileType}, db_handler::tbl_admins_handler, Deserialize,
-    get_value_mutex_safe, Serialize, admins_handler::validate_token,
-};
-use actix_multipart::{Field, Multipart};
-use actix_web::{delete, error, post, Error, HttpRequest, HttpResponse, get, web};
+use super::get_value_mutex_safe;
+use actix_web::{body, delete, error, get, http, post, put, web, Error, HttpRequest, HttpResponse};
+use categories::{Grades, Subjects};
+use serde::{Deserialize, Serialize};
+use std::{fmt, fs, path::Path, str::FromStr};
 
 #[derive(Deserialize)]
 pub struct SearchParameters {
     search_string: String,
     result_limit: u32,
-    page_number: Option<u32>
+    page_number: Option<u32>,
 }
+
 impl SearchParameters {
     pub fn get_search_string(&self) -> &str {
         &self.search_string
@@ -25,16 +23,65 @@ impl SearchParameters {
     }
 }
 
-#[derive(Debug, Serialize)]
-pub struct SearchResponse {
-    page_count: u32,
-    current_page_number: u32,
-    data: Vec<FileGroup>
+#[derive(Debug, PartialEq, Serialize)]
+pub enum FileType {
+    PDF,
+    Video,
+    Audio,
+    None,
 }
-impl SearchResponse {
-    pub fn new(page_count: u32, current_page_number: u32, data: Vec<FileGroup>) -> Self {
-        Self {
-            page_count, current_page_number, data
+
+impl FromStr for FileType {
+    type Err = String;
+
+    fn from_str(input: &str) -> Result<FileType, Self::Err> {
+        match input {
+            "PDF" | "pdf" | "Pdf" => Ok(FileType::PDF),
+            "Video" | "VIDEO" | "វីដេអូ" | "video" => Ok(FileType::Video),
+            "Audio" | "AUDIO" | "សម្លេង" | "សំឡេង" | "audio" => {
+                Ok(FileType::Audio)
+            }
+            "None" | "NONE" | "none" => Ok(FileType::None),
+            _ => Err(String::from("Mismatch Type: PDF, Video, Audio")),
+        }
+    }
+}
+
+impl fmt::Display for FileType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            FileType::PDF => write!(f, "PDF"),
+            FileType::Video => write!(f, "Video"),
+            FileType::Audio => write!(f, "Audio"),
+            FileType::None => write!(f, "None"),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum FileRole {
+    ContentFile,
+    ThumbnailFile,
+}
+
+impl FromStr for FileRole {
+    type Err = String;
+
+    fn from_str(input: &str) -> Result<FileRole, Self::Err> {
+        match input {
+            "ContentFile" => Ok(FileRole::ContentFile),
+            "contentfile" => Ok(FileRole::ContentFile),
+            "CONTENTFILE" => Ok(FileRole::ContentFile),
+            "File" => Ok(FileRole::ContentFile),
+            "file" => Ok(FileRole::ContentFile),
+            "FILE" => Ok(FileRole::ContentFile),
+            "ThumbnailFile" => Ok(FileRole::ThumbnailFile),
+            "THUMBNAILFILE" => Ok(FileRole::ThumbnailFile),
+            "thumbnailfile" => Ok(FileRole::ThumbnailFile),
+            "thumbnail" => Ok(FileRole::ThumbnailFile),
+            "Thumbnail" => Ok(FileRole::ThumbnailFile),
+            "THUMBNAIL" => Ok(FileRole::ThumbnailFile),
+            _ => Err(String::from("Mismatch type: File, Thumbnail")),
         }
     }
 }
@@ -50,7 +97,7 @@ pub struct FileGroup {
     file_type: FileType,
     thumbnail: Option<Thumbnail>,
     grade_kh: String,
-    subject_kh: String
+    subject_kh: String,
 }
 
 impl FileGroup {
@@ -65,7 +112,7 @@ impl FileGroup {
             file_type: FileType::None,
             thumbnail: None,
             grade_kh: String::new(),
-            subject_kh: String::new()
+            subject_kh: String::new(),
         }
     }
     pub fn new(
@@ -78,7 +125,7 @@ impl FileGroup {
         file_type: FileType,
         thumbnail: Option<Thumbnail>,
         grade_kh: String,
-        subject_kh: String
+        subject_kh: String,
     ) -> Self {
         FileGroup {
             file_id,
@@ -90,10 +137,10 @@ impl FileGroup {
             file_type,
             thumbnail,
             grade_kh,
-            subject_kh
+            subject_kh,
         }
     }
-    pub fn get_file_id(&self) -> &str{
+    pub fn get_file_id(&self) -> &str {
         self.file_id.as_ref()
     }
     pub fn get_display_name(&self) -> &str {
@@ -187,14 +234,7 @@ impl ToOwned for Thumbnail {
     }
 }
 
-pub fn extract_url_arg(req: &HttpRequest, arg: &str, err: String) -> Result<String, Error> {
-    match req.match_info().get(arg) {
-        Some(arg) => Ok(arg.to_owned()),
-        None => Err(error::ErrorInternalServerError(err)),
-    }
-}
-
-pub mod delete_api;
-pub mod upload_api;
-pub mod query_api;
-pub mod serve_api;
+pub mod admins_handler;
+pub mod categories;
+pub mod db_handler;
+pub mod file_handler;

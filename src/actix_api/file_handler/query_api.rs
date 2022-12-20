@@ -1,6 +1,6 @@
 use super::{
-    db_handler::tbl_contents_handler, error, extract_url_arg, get, Error, FileType, FromStr,
-    Grades, HttpRequest, HttpResponse, Subjects, SearchParameters, web, SearchResponse
+    db_handler::tbl_contents_handler, error, extract_url_arg, get, web, Error, FileType, FromStr,
+    Grades, HttpRequest, HttpResponse, SearchParameters, SearchResponse, Subjects,
 };
 
 #[get("/public/api/query/{grade}/{subject}/{file_id}")]
@@ -84,7 +84,9 @@ pub async fn query_by_grade(req: HttpRequest) -> Result<HttpResponse, Error> {
 }
 
 #[get("/public/api/search")]
-pub async fn seatch_contents(search_param: web::Query<SearchParameters>) -> Result<HttpResponse, Error> {
+pub async fn seatch_contents(
+    search_param: web::Query<SearchParameters>,
+) -> Result<HttpResponse, Error> {
     let search_string = search_param.get_search_string();
     let name_string = format!("%{}%", search_string);
     let file_type_string = format!(
@@ -117,16 +119,14 @@ pub async fn seatch_contents(search_param: web::Query<SearchParameters>) -> Resu
         &grade_string,
         &subject_string,
         search_param.get_result_limit(),
-        search_param.get_page_number()
+        search_param.get_page_number(),
     );
     let page_number = match search_param.page_number {
         Some(t) => t,
-        None => 1
+        None => 1,
     };
-    let data_len = row_count/search_param.get_result_limit();
-    Ok(
-        HttpResponse::Ok().json(SearchResponse::new(data_len, page_number, db_query_result)),
-    )
+    let data_len = row_count / search_param.get_result_limit();
+    Ok(HttpResponse::Ok().json(SearchResponse::new(data_len, page_number, db_query_result)))
 }
 
 #[get("/public/api/query")]

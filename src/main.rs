@@ -1,17 +1,8 @@
-mod admins_handler;
-mod categories;
-mod db_handler;
-mod file_handler;
-mod file_property;
-mod tools;
+mod actix_api;
 
-use actix_web::{App, HttpServer};
-use config::Config;
-use lazy_static::lazy_static;
-use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fmt, str::FromStr, sync::Mutex};
+use std::{collections::HashMap, sync::Mutex};
 
-lazy_static! {
+lazy_static::lazy_static! {
     static ref CONF_MAP: Mutex<HashMap<String, String>> = Mutex::new(HashMap::new());
 }
 
@@ -21,7 +12,7 @@ fn get_value_mutex_safe(key: &str) -> String {
 }
 
 fn set_init_parameter(conf_location: &str) {
-    let settings = Config::builder()
+    let settings = config::Config::builder()
         .add_source(config::File::with_name(conf_location))
         .build()
         .unwrap();
@@ -47,13 +38,12 @@ async fn main() -> std::io::Result<()> {
     }
     .unwrap();
 
-    db_handler::migrations::run_init_migration();
+    actix_api::db_handler::migrations::run_init_migration();
 
     let ip_addr_port = get_value_mutex_safe("IPADDR_PORT");
-    // let content_path = get_value_mutex_safe("CONTENTS_ROOT");
 
-    let server = HttpServer::new(move || {
-        App::new()
+    let server = actix_web::HttpServer::new(move || {
+        actix_web::App::new()
             .wrap(
                 actix_cors::Cors::default()
                     .allow_any_header()
@@ -61,23 +51,23 @@ async fn main() -> std::io::Result<()> {
                     .allow_any_origin()
                     .supports_credentials(),
             )
-            .service(categories::get_sidebar)
-            .service(file_handler::upload_api::upload)
-            .service(file_handler::delete_api::delete)
-            .service(file_handler::delete_api::delete_by_id)
-            .service(file_handler::query_api::query_all)
-            .service(file_handler::query_api::query_by_grade)
-            .service(file_handler::query_api::query_by_grade_subject)
-            .service(file_handler::query_api::query_by_grade_subject_filename)
-            .service(file_handler::query_api::seatch_contents)
-            .service(admins_handler::login_api::login)
-            .service(admins_handler::add_admin::add_admin)
-            .service(admins_handler::delete_admin::delete_admin)
-            .service(admins_handler::edit_admin::edit_admin)
-            .service(admins_handler::query_admin::query_all_admin)
-            .service(admins_handler::query_admin::query_admin_by_id)
-            .service(admins_handler::query_admin::search_admin)
-            .service(file_handler::serve_api::get_file)
+            .service(actix_api::categories::get_sidebar)
+            .service(actix_api::file_handler::upload_api::upload)
+            .service(actix_api::file_handler::delete_api::delete)
+            .service(actix_api::file_handler::delete_api::delete_by_id)
+            .service(actix_api::file_handler::query_api::query_all)
+            .service(actix_api::file_handler::query_api::query_by_grade)
+            .service(actix_api::file_handler::query_api::query_by_grade_subject)
+            .service(actix_api::file_handler::query_api::query_by_grade_subject_filename)
+            .service(actix_api::file_handler::query_api::seatch_contents)
+            .service(actix_api::admins_handler::login_api::login)
+            .service(actix_api::admins_handler::add_admin::add_admin)
+            .service(actix_api::admins_handler::delete_admin::delete_admin)
+            .service(actix_api::admins_handler::edit_admin::edit_admin)
+            .service(actix_api::admins_handler::query_admin::query_all_admin)
+            .service(actix_api::admins_handler::query_admin::query_admin_by_id)
+            .service(actix_api::admins_handler::query_admin::search_admin)
+            .service(actix_api::file_handler::serve_api::get_file)
     })
     .bind(&ip_addr_port)?;
     println!("Server running at: {}", &ip_addr_port);

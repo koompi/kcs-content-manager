@@ -6,9 +6,8 @@ use super::{
 #[post("/private/api/admin/add")]
 pub async fn add_admin(
     req: HttpRequest,
-    arg: web::Json<AdminsInfo>
+    arg: web::Json<AdminsInfo>,
 ) -> Result<HttpResponse, Error> {
-
     let (role, claims) = match validate_token(&req) {
         Ok((role, claims)) => Ok((role, claims)),
         Err((code, message)) => match code {
@@ -26,7 +25,7 @@ pub async fn add_admin(
         true => Ok(()),
         false => Err(error::ErrorInternalServerError(String::from(
             "This Root doesn't exists",
-        )))
+        ))),
     }?;
 
     match tbl_admins_handler::query_existence_of_admin(&arg.username.to_owned().unwrap()) {
@@ -36,19 +35,15 @@ pub async fn add_admin(
         false => Ok(()),
     }?;
 
-    if let None = arg.display_name  {
+    if let None = arg.display_name {
         Err(error::ErrorBadRequest(String::from("Missing Display Name")))
-    }
-    else if let None = arg.role {
+    } else if let None = arg.role {
         Err(error::ErrorBadRequest(String::from("Missing Role")))
-    }
-    else if let None = arg.password {
+    } else if let None = arg.password {
         Err(error::ErrorBadRequest(String::from("Missing Password")))
-    }
-    else if let None = arg.username {
+    } else if let None = arg.username {
         Err(error::ErrorBadRequest(String::from("Missing Username")))
-    }
-    else {
+    } else {
         Ok(())
     }?;
 

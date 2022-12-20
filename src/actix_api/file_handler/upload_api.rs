@@ -1,16 +1,25 @@
 use super::{
-    db_handler, error, extract_url_arg, get_value_mutex_safe, post, tbl_admins_handler,
-    validate_token, Error, Field, FileGroup, FileRole, FileType, FromStr, Grades, HttpRequest,
-    HttpResponse, Multipart, Subjects, Thumbnail,
+    db_handler, error, extract_url_arg,
+    fs::{self, File, OpenOptions},
+    get_value_mutex_safe, post, tbl_admins_handler, validate_token, Error, Field, FileGroup,
+    FileRole, FileType, FromStr, Grades, HttpRequest, HttpResponse, Multipart, Path, Subjects,
+    Thumbnail,
 };
-use crate::tools;
 use futures_util::stream::StreamExt as _;
 use std::{
-    fs,
     io::{prelude::*, BufWriter},
-    path,
     time::SystemTime,
 };
+
+fn continue_file(source_file: &str) -> File {
+    OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .append(true)
+        .open(source_file)
+        .unwrap()
+}
 
 fn truncate(s: &str, max_chars: usize) -> &str {
     match s.char_indices().nth(max_chars) {
@@ -92,7 +101,7 @@ pub async fn upload(req: HttpRequest, mut payload: Multipart) -> Result<HttpResp
         let root_path = get_value_mutex_safe("CONTENTS_ROOT");
         let location = format!("{}/{}/{}", root_path, &grade, &subject);
         let fullpath = format!("{}/{}", location, filename);
-        let file_obj = tools::continue_file(fullpath.as_ref());
+        let file_obj = continue_file(fullpath.as_ref());
 
         while let Some(chunk) = field.next().await {
             let mut write_buffer = BufWriter::new(&file_obj);
@@ -130,7 +139,7 @@ pub async fn upload(req: HttpRequest, mut payload: Multipart) -> Result<HttpResp
         let fullpath_thumbnail = thumbnail.get_location().to_owned() + "/" + thumbnail.get_name();
 
         // Ignore Error because if it doesn't exist, its fine
-        fs::remove_file(path::Path::new(&fullpath_thumbnail)).unwrap_or(());
+        fs::remove_file(Path::new(&fullpath_thumbnail)).unwrap_or(());
 
         Err(error::ErrorBadRequest(
             "Thumbnail uploaded without Main File. File is needed.",

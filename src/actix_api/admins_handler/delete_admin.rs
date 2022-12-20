@@ -6,7 +6,6 @@ use super::{
 #[delete("/private/api/admin/delete/{user_id}")]
 pub async fn delete_admin(
     req: HttpRequest,
-    // username: web::Json<String>,
 ) -> Result<HttpResponse, Error> {
     let (role, claims) = match validate_token(&req) {
         Ok((role, claims)) => Ok((role, claims)),

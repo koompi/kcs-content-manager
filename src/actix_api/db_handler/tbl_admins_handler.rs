@@ -1,8 +1,6 @@
-use std::str::FromStr;
-
 use super::{
     admins_handler::{AdminsInfo, LoginRole},
-    get_value_mutex_safe, params, Connection,
+    get_value_mutex_safe, params, Connection, FromStr,
 };
 
 pub fn insert_into_tbl_admins(
@@ -33,20 +31,14 @@ pub fn update_tbl_admins_where(
     let database = get_value_mutex_safe("DATABASE");
 
     Connection::open(&database)
-    .unwrap()
-    .execute(
-"UPDATE tblAdmins 
+        .unwrap()
+        .execute(
+            "UPDATE tblAdmins 
 SET DisplayName=?2, UserName=?3, PasswordHash=?4, Role=?5 
 WHERE UserID=?1",
-        params![
-            user_id,
-            display_name,
-            username,
-            passwordhash,
-            role
-        ],
-    )
-    .unwrap();
+            params![user_id, display_name, username, passwordhash, role],
+        )
+        .unwrap();
 }
 
 pub fn delete_from_tbl_admins(user_id: &str) {
@@ -214,7 +206,7 @@ pub fn search_from_tbl_admins(
 
     let mut stmt = connection
         .prepare(
-"SELECT COUNT(*) 
+            "SELECT COUNT(*) 
 FROM tblAdmins
 WHERE Username LIKE ?1 OR 
 DisplayName LIKE ?2 OR 
@@ -233,7 +225,7 @@ Role LIKE ?3",
         Some(page_number) => {
             stmt = connection
                 .prepare(
-"SELECT UserID,DisplayName,UserName,Role 
+                    "SELECT UserID,DisplayName,UserName,Role 
 FROM tblAdmins
 WHERE Username LIKE ?1 OR 
 DisplayName LIKE ?2 OR 
@@ -253,7 +245,7 @@ OFFSET ?",
         None => {
             stmt = connection
                 .prepare(
-"SELECT UserID,DisplayName,UserName,Role 
+                    "SELECT UserID,DisplayName,UserName,Role 
 FROM tblAdmins
 WHERE Username LIKE ?1 OR 
 DisplayName LIKE ?2 OR 

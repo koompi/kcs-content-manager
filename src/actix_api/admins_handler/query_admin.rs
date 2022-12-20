@@ -1,6 +1,6 @@
 use super::{
     error, file_handler, get, tbl_admins_handler, validate_token, web, Error, FromStr, HttpRequest,
-    HttpResponse, LoginRole, SearchResponse,
+    HttpResponse, LoginRole, SearchParameters, SearchResponse,
 };
 
 #[get("/private/api/admin/query")]
@@ -59,7 +59,7 @@ pub async fn query_admin_by_id(req: HttpRequest) -> Result<HttpResponse, Error> 
 #[get("/private/api/admin/search")]
 pub async fn search_admin(
     req: HttpRequest,
-    search_parameter: web::Query<file_handler::SearchParameters>,
+    search_parameter: web::Query<SearchParameters>,
 ) -> Result<HttpResponse, Error> {
     let (_, claims) = match validate_token(&req) {
         Ok((role, claims)) => Ok((role, claims)),

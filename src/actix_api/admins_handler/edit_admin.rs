@@ -1,12 +1,13 @@
-use std::str::FromStr;
-
 use super::{
-    put, error, tbl_admins_handler, validate_token, web, Error, HttpRequest, HttpResponse,
-    LoginRole, AdminsInfo, file_handler
+    error, file_handler, put, tbl_admins_handler, validate_token, web, AdminsInfo, Error, FromStr,
+    HttpRequest, HttpResponse, LoginRole,
 };
 
 #[put("/private/api/admin/edit/{user_id}")]
-pub async fn edit_admin(req: HttpRequest, arg: web::Json<AdminsInfo>) -> Result<HttpResponse, Error> {
+pub async fn edit_admin(
+    req: HttpRequest,
+    arg: web::Json<AdminsInfo>,
+) -> Result<HttpResponse, Error> {
     let (role, claims) = match validate_token(&req) {
         Ok((role, claims)) => Ok((role, claims)),
         Err((code, message)) => match code {
@@ -30,7 +31,7 @@ pub async fn edit_admin(req: HttpRequest, arg: web::Json<AdminsInfo>) -> Result<
         true => Ok(()),
         false => Err(error::ErrorInternalServerError(String::from(
             "This Root doesn't exists",
-        )))
+        ))),
     }?;
 
     match tbl_admins_handler::query_existence_of_admin_by_id(user_id) {
@@ -40,34 +41,35 @@ pub async fn edit_admin(req: HttpRequest, arg: web::Json<AdminsInfo>) -> Result<
         ))),
     }?;
 
-
     let mut arg = arg.into_inner();
 
-    if let None = arg.display_name  {
+    if let None = arg.display_name {
         arg.display_name = Some(tbl_admins_handler::get_display_name(&user_id));
     }
 
     if let None = arg.username {
         arg.username = Some(tbl_admins_handler::get_username(&user_id))
-    }
-    else {
+    } else {
         match tbl_admins_handler::query_existence_of_admin(arg.username.as_ref().unwrap()) {
-            true => match tbl_admins_handler::get_username(&user_id) == arg.username.to_owned().unwrap() {
+            true => match tbl_admins_handler::get_username(&user_id)
+                == arg.username.to_owned().unwrap()
+            {
                 true => Ok(()),
-                false => Err(error::ErrorInternalServerError(String::from("New Username already exists")))
+                false => Err(error::ErrorInternalServerError(String::from(
+                    "New Username already exists",
+                ))),
             },
             false => Ok(()),
-        }?;        
+        }?;
     }
-    
+
     if let None = arg.role {
         arg.role = Some(LoginRole::from_str(&tbl_admins_handler::get_role(&user_id)).unwrap());
     }
 
     if let None = arg.password {
         arg.password = Some(tbl_admins_handler::get_password_hash(&user_id));
-    }
-    else {
+    } else {
         arg.password = Some(bcrypt::hash(arg.password.unwrap(), bcrypt::DEFAULT_COST).unwrap());
     }
 

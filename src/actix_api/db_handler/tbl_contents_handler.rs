@@ -1,11 +1,7 @@
-use rusqlite::{Error, Rows, Statement};
-
-use super::{get_value_mutex_safe, params, Connection, Grades, Subjects};
-use crate::{
-    file_handler::{FileGroup, Thumbnail},
-    file_property::FileType,
+use super::{
+    get_value_mutex_safe, params, Connection, Error, FileGroup, FileType, FromStr, Grades, Rows,
+    Statement, Subjects, Thumbnail,
 };
-use std::str::FromStr;
 
 pub fn insert_into_contents_table(
     file_id: &str,
@@ -64,11 +60,12 @@ pub fn query_existence_of_file(file_id: &str, grade: &str, subject: &str) -> boo
 
     let mut stmt = connection
         .prepare(
-"SELECT FileID FROM tblContents 
+            "SELECT FileID FROM tblContents 
 WHERE FileID=? AND 
 Grade=? AND 
 Subject=? 
-LIMIT 1")
+LIMIT 1",
+        )
         .unwrap();
     stmt.exists(params![file_id, grade, subject]).unwrap()
 }
@@ -79,7 +76,7 @@ pub fn query_file_thumbnail_location_by_id(file_id: &str) -> (String, String) {
 
     let mut stmt = connection
         .prepare(
-"SELECT FileName,Location,ThumbnailName,ThumbnailLocation 
+            "SELECT FileName,Location,ThumbnailName,ThumbnailLocation 
 FROM tblContents 
 WHERE FileID=?",
         )
@@ -106,7 +103,7 @@ pub fn query_file_thumbnail_location(
 
     let mut stmt = connection
         .prepare(
-"SELECT FileName,Location,ThumbnailName,ThumbnailLocation 
+            "SELECT FileName,Location,ThumbnailName,ThumbnailLocation 
 FROM tblContents 
 WHERE FileID=? AND 
 Grade=? AND 
@@ -145,11 +142,12 @@ pub fn query_from_tbl_contents_with_grade_subject_file_id(
 
     let mut stmt = connection
         .prepare(
-"SELECT * 
+            "SELECT * 
 FROM tblContents 
 WHERE Grade=? AND 
 Subject=? AND 
-FileID=?")
+FileID=?",
+        )
         .unwrap();
 
     stmt.query_row([grade, subject, file_id], |row| {
@@ -261,7 +259,7 @@ pub fn search_from_tbl_contents(
 
     let mut stmt: Statement = connection
         .prepare(
-"SELECT COUNT(*) 
+            "SELECT COUNT(*) 
 FROM tblContents 
 WHERE DisplayName LIKE ? OR 
 FileType LIKE ? OR 
@@ -281,7 +279,7 @@ Subject LIKE ?",
         Some(page_number) => {
             stmt = connection
                 .prepare(
-"SELECT * 
+                    "SELECT * 
 FROM tblContents 
 WHERE DisplayName LIKE ? OR 
 FileType LIKE ? OR 
@@ -303,7 +301,7 @@ OFFSET ?",
         None => {
             stmt = connection
                 .prepare(
-"SELECT * 
+                    "SELECT * 
 FROM tblContents 
 WHERE DisplayName LIKE ? 
 OR FileType LIKE ? OR 

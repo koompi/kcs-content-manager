@@ -1,9 +1,8 @@
 use super::{
-    db_handler::tbl_admins_handler, file_handler, get_value_mutex_safe, Deserialize, Serialize, FromStr
+    body, db_handler::tbl_admins_handler, delete, error, file_handler, fmt, get,
+    get_value_mutex_safe, http, post, put, web, Deserialize, Error, FromStr, HttpRequest,
+    HttpResponse, SearchParameters, Serialize,
 };
-use actix_web::{delete, error, get, post, put, web, Error, HttpRequest, HttpResponse, body, http};
-use bcrypt::verify;
-use std::fmt;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AdminsInfo {
@@ -95,12 +94,14 @@ impl Claims {
 pub struct SearchResponse {
     page_count: u32,
     current_page_number: u32,
-    data: Vec<AdminsInfo>
+    data: Vec<AdminsInfo>,
 }
 impl SearchResponse {
     pub fn new(page_count: u32, current_page_number: u32, data: Vec<AdminsInfo>) -> Self {
         Self {
-            page_count, current_page_number, data
+            page_count,
+            current_page_number,
+            data,
         }
     }
 }
@@ -108,7 +109,7 @@ impl SearchResponse {
 fn validate_password(username: &str, password: &str) -> bool {
     let user_id = tbl_admins_handler::get_user_id_from_username(username);
     let password_hash = tbl_admins_handler::get_password_hash(&user_id);
-    verify(password, &password_hash).unwrap()
+    bcrypt::verify(password, &password_hash).unwrap()
 }
 
 fn extract_claims_from_token(token: &str) -> Result<Claims, (u32, String)> {

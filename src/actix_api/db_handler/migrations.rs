@@ -10,8 +10,11 @@ pub fn run_init_migration() {
     .unwrap();
 
     if !std::path::Path::new(&database).exists() {
-        Connection::open(&database).unwrap().execute_batch(format!(
-"BEGIN;
+        Connection::open(&database)
+            .unwrap()
+            .execute_batch(
+                format!(
+                    "BEGIN;
 CREATE TABLE tblContents(
     FileID NVARCHAR(100) NOT NULL PRIMARY KEY UNIQUE, 
     DisplayName VARCHAR(255), 
@@ -32,7 +35,14 @@ CREATE TABLE tblAdmins(
 );
 INSERT INTO tblAdmins('UserID', DisplayName, UserName, PasswordHash, Role) 
     VALUES('{}', 'Root', '{}', '{}', 'Root');
-COMMIT;", &uuid::Uuid::new_v4().hyphenated().to_string(), init_username, init_password).as_str()).unwrap();
+COMMIT;",
+                    &uuid::Uuid::new_v4().hyphenated().to_string(),
+                    init_username,
+                    init_password
+                )
+                .as_str(),
+            )
+            .unwrap();
     }
 
     let root_path = get_value_mutex_safe("CONTENTS_ROOT");
