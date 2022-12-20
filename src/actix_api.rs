@@ -223,9 +223,10 @@ impl ToOwned for Thumbnail {
     type Owned = Thumbnail;
 
     fn to_owned(&self) -> Self::Owned {
+        let clone_self = self.clone();
         Thumbnail::new(
-            self.clone().thumbnail_name.to_owned(),
-            self.clone().thumbnail_location.to_owned(),
+            clone_self.thumbnail_name.to_owned(),
+            clone_self.thumbnail_location.to_owned(),
         )
     }
 
