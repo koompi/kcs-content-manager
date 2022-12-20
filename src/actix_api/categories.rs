@@ -24,7 +24,7 @@ impl SideBarCategory {
                     subcategory,
                 }
             })
-            .collect::<Vec<Self>>()
+            .collect()
     }
 }
 
@@ -36,46 +36,43 @@ struct SideBarSubCategory {
 
 impl SideBarSubCategory {
     pub fn new(grade: Grades) -> Vec<Self> {
-        let mut vec_cate: Vec<Self> = Vec::new();
         if grade == Grades::FolkLore {
-            Subjects::get_lang_iter().for_each(|each| {
+            Subjects::get_lang_iter().map(|each| {
                 let subcategory_id = each.to_string();
                 let subcategory_display_name = Subjects::get_kh(each.to_owned());
-                vec_cate.push(SideBarSubCategory {
+                SideBarSubCategory {
                     subcategory_id,
                     subcategory_display_name,
-                })
-            })
-        }
-        if grade == Grades::Help {
-            Subjects::get_help_iter().for_each(|each| {
+                }
+            }).collect()
+        } else if grade == Grades::Help {
+            Subjects::get_help_iter().map(|each| {
                 let subcategory_id = each.to_string();
                 let subcategory_display_name = Subjects::get_kh(each.to_owned());
-                vec_cate.push(SideBarSubCategory {
+                SideBarSubCategory {
                     subcategory_id,
                     subcategory_display_name,
-                })
-            })
+                }
+            }).collect()
         } else if grade == Grades::Grade1 || grade == Grades::Grade2 || grade == Grades::Grade3 {
-            Subjects::get_basic_iter().for_each(|each| {
+            Subjects::get_basic_iter().map(|each| {
                 let subcategory_id = each.to_string();
                 let subcategory_display_name = Subjects::get_kh(each.to_owned());
-                vec_cate.push(SideBarSubCategory {
+                SideBarSubCategory {
                     subcategory_id,
                     subcategory_display_name,
-                })
-            })
+                }
+            }).collect()
         } else {
-            Subjects::iterator().for_each(|each| {
+            Subjects::iterator().map(|each| {
                 let subcategory_id = each.to_string();
                 let subcategory_display_name = Subjects::get_kh(each.to_owned());
-                vec_cate.push(SideBarSubCategory {
+                SideBarSubCategory {
                     subcategory_id,
                     subcategory_display_name,
-                })
-            })
+                }
+            }).collect()
         }
-        vec_cate
     }
 }
 
