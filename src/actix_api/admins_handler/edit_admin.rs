@@ -1,6 +1,6 @@
 use super::{
-    error, file_handler, put, tbl_admins_handler, validate_token, web, AdminsInfo, Error, FromStr,
-    HttpRequest, HttpResponse, LoginRole,
+    error, extract_url_arg, put, tbl_admins_handler, validate_token, web, AdminsInfo, Error,
+    FromStr, HttpRequest, HttpResponse, LoginRole,
 };
 
 #[put("/private/api/admin/edit/{user_id}")]
@@ -16,7 +16,7 @@ pub async fn edit_admin(
         },
     }?;
 
-    let user_id = &file_handler::extract_url_arg(
+    let user_id = &extract_url_arg(
         &req,
         "user_id",
         String::from("Check if user_id URL Arg is valid"),

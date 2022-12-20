@@ -1,6 +1,6 @@
 use super::{
-    error, file_handler, get, tbl_admins_handler, validate_token, web, Error, FromStr, HttpRequest,
-    HttpResponse, LoginRole, SearchParameters, SearchResponse,
+    error, extract_url_arg, get, tbl_admins_handler, validate_token, web, Error, FromStr,
+    HttpRequest, HttpResponse, LoginRole, SearchParameters, SearchResponse,
 };
 
 #[get("/private/api/admin/query")]
@@ -40,13 +40,13 @@ pub async fn query_admin_by_id(req: HttpRequest) -> Result<HttpResponse, Error> 
         ))),
     }?;
 
-    let user_id = &file_handler::extract_url_arg(
+    let user_id = extract_url_arg(
         &req,
         "user_id",
         String::from("Check if user_id URL Arg is valid"),
     )?;
 
-    match tbl_admins_handler::query_existence_of_admin_by_id(user_id) {
+    match tbl_admins_handler::query_existence_of_admin_by_id(user_id.as_ref()) {
         true => Ok(()),
         false => Err(error::ErrorInternalServerError(String::from(
             "User doesn't exist",
@@ -98,10 +98,10 @@ pub async fn search_admin(
         Some(t) => t,
         None => 1,
     };
-    
+
     let mut data_len = row_count / search_parameter.get_result_limit();
 
-    if  (data_len * search_parameter.get_result_limit()) != row_count  {
+    if (data_len * search_parameter.get_result_limit()) != row_count {
         data_len = data_len + 1;
     }
 

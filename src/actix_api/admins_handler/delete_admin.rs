@@ -1,12 +1,10 @@
 use super::{
-    delete, error, file_handler, tbl_admins_handler, validate_token, Error, HttpRequest,
+    delete, error, extract_url_arg, tbl_admins_handler, validate_token, Error, HttpRequest,
     HttpResponse, LoginRole,
 };
 
 #[delete("/private/api/admin/delete/{user_id}")]
-pub async fn delete_admin(
-    req: HttpRequest,
-) -> Result<HttpResponse, Error> {
+pub async fn delete_admin(req: HttpRequest) -> Result<HttpResponse, Error> {
     let (role, claims) = match validate_token(&req) {
         Ok((role, claims)) => Ok((role, claims)),
         Err((code, message)) => match code {
@@ -15,7 +13,7 @@ pub async fn delete_admin(
         },
     }?;
 
-    let user_id = &file_handler::extract_url_arg(
+    let user_id = &extract_url_arg(
         &req,
         "user_id",
         String::from("Check if user_id URL Arg is valid"),

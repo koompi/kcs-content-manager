@@ -235,6 +235,13 @@ impl ToOwned for Thumbnail {
     }
 }
 
+pub fn extract_url_arg(req: &HttpRequest, arg: &str, err: String) -> Result<String, Error> {
+    match req.match_info().get(arg) {
+        Some(arg) => Ok(arg.to_owned()),
+        None => Err(error::ErrorInternalServerError(err)),
+    }
+}
+
 pub mod admins_handler;
 pub mod categories;
 pub mod db_handler;
