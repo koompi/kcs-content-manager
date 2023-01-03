@@ -103,7 +103,7 @@ pub enum Subjects {
 
 impl Subjects {
     pub fn get_basic_iter() -> Iter<'static, Subjects> {
-        static SUBJECTS: [Subjects; 16] = [
+        static SUBJECTS: [Subjects; 15] = [
             self::Subjects::FlashCard,
             self::Subjects::EnglishLang,
             self::Subjects::KhmerLang,
@@ -112,7 +112,6 @@ impl Subjects {
             self::Subjects::PnorngLang,
             self::Subjects::TompounLang,
             self::Subjects::KreungLang,
-            self::Subjects::KhmerLang,
             self::Subjects::ProvLang,
             self::Subjects::TeachingGuide,
             self::Subjects::MindMotion,
@@ -125,7 +124,7 @@ impl Subjects {
     }
 
     pub fn get_lang_iter() -> Iter<'static, Subjects> {
-        static SUBJECTS: [Subjects; 10] = [
+        static SUBJECTS: [Subjects; 9] = [
             self::Subjects::EnglishLang,
             self::Subjects::KhmerLang,
             self::Subjects::KavetLang,
@@ -133,7 +132,6 @@ impl Subjects {
             self::Subjects::PnorngLang,
             self::Subjects::TompounLang,
             self::Subjects::KreungLang,
-            self::Subjects::KhmerLang,
             self::Subjects::ProvLang,
             self::Subjects::TeachingGuide,
         ];
@@ -146,7 +144,7 @@ impl Subjects {
     }
 
     pub fn iterator() -> Iter<'static, Subjects> {
-        static SUBJECTS: [Subjects; 21] = [
+        static SUBJECTS: [Subjects; 20] = [
             self::Subjects::TeachingGuide,
             self::Subjects::EnglishLang,
             self::Subjects::KhmerLang,
@@ -155,7 +153,6 @@ impl Subjects {
             self::Subjects::PnorngLang,
             self::Subjects::TompounLang,
             self::Subjects::KreungLang,
-            self::Subjects::KhmerLang,
             self::Subjects::ProvLang,
             self::Subjects::FlashCard,
             self::Subjects::MindMotion,

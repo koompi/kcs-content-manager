@@ -369,3 +369,136 @@ fn filter_rows_for_filegroup(rows: &mut Rows) -> Vec<FileGroup> {
 
     file_lists
 }
+
+pub fn query_from_tbl_contents_with_grade_subject_pagination(
+    grade: &str,
+    subject: &str,
+    result_limit: &u32,
+    page_number: Option<u32>,
+) -> (u32, Vec<FileGroup>) {
+    let database = get_value_mutex_safe("DATABASE");
+    let connection = Connection::open(&database).unwrap();
+
+    let mut stmt: Statement = connection
+        .prepare("SELECT COUNT(*) FROM tblContents WHERE Grade=? AND Subject=?")
+        .unwrap();
+
+    let row_count = stmt
+        .query_row(params![grade, subject], |row| {
+            Ok(row.get::<usize, u32>(0).unwrap())
+        })
+        .unwrap();
+
+    let rows = match page_number {
+        Some(page_number) => {
+            stmt = connection
+                .prepare("SELECT * FROM tblContents WHERE Grade=? AND Subject=? LIMIT ? OFFSET ?")
+                .unwrap();
+            stmt.query(params![
+                grade,
+                subject,
+                result_limit,
+                (page_number - 1) * result_limit
+            ])
+        }
+        None => {
+            stmt = connection
+                .prepare("SELECT * FROM tblContents WHERE Grade=? AND Subject=? LIMIT ?")
+                .unwrap();
+            stmt.query(params![grade, subject, result_limit,])
+        }
+    };
+
+    match rows {
+        Ok(mut rows) => (row_count, filter_rows_for_filegroup(&mut rows)),
+        Err(err) => {
+            println!("{}", err);
+            (row_count, Vec::new())
+        }
+    }
+}
+pub fn query_from_tbl_contents_with_grade_pagination(
+    grade: &str,
+    result_limit: &u32,
+    page_number: Option<u32>,
+) -> (u32, Vec<FileGroup>) {
+    let database = get_value_mutex_safe("DATABASE");
+    let connection = Connection::open(&database).unwrap();
+
+    let mut stmt: Statement = connection
+        .prepare("SELECT COUNT(*) FROM tblContents WHERE Grade=?")
+        .unwrap();
+
+    let row_count = stmt
+        .query_row(params![grade], |row| Ok(row.get::<usize, u32>(0).unwrap()))
+        .unwrap();
+
+    let rows = match page_number {
+        Some(page_number) => {
+            stmt = connection
+                .prepare("SELECT * FROM tblContents WHERE Grade=? LIMIT ? OFFSET ?")
+                .unwrap();
+            stmt.query(params![
+                grade,
+                result_limit,
+                (page_number - 1) * result_limit
+            ])
+        }
+        None => {
+            stmt = connection
+                .prepare("SELECT * FROM tblContents WHERE Grade=? LIMIT ?")
+                .unwrap();
+            stmt.query(params![grade, result_limit])
+        }
+    };
+
+    match rows {
+        Ok(mut rows) => (row_count, filter_rows_for_filegroup(&mut rows)),
+        Err(err) => {
+            println!("{}", err);
+            (row_count, Vec::new())
+        }
+    }
+}
+
+pub fn query_all_from_tbl_contents_pagination(
+    result_limit: &u32,
+    page_number: Option<u32>,
+) -> (u32, Vec<FileGroup>) {
+    let database = get_value_mutex_safe("DATABASE");
+    let connection = Connection::open(&database).unwrap();
+
+    let mut stmt: Statement = connection
+        .prepare("SELECT COUNT(*) FROM tblContents")
+        .unwrap();
+
+    let row_count = stmt
+        .query_row([], |row| Ok(row.get::<usize, u32>(0).unwrap()))
+        .unwrap();
+
+    let rows = match page_number {
+        Some(page_number) => {
+            stmt = connection
+                .prepare("SELECT * FROM tblContents LIMIT ? OFFSET ?")
+                .unwrap();
+            stmt.query(params![
+                result_limit,
+                (page_number - 1) * result_limit
+            ])
+        }
+        None => {
+            stmt = connection
+                .prepare("SELECT * FROM tblContents LIMIT ?")
+                .unwrap();
+            stmt.query(params![result_limit])
+        }
+    };
+
+    match rows {
+        Ok(mut rows) => (row_count, filter_rows_for_filegroup(&mut rows)),
+        Err(err) => {
+            println!("{}", err);
+            (row_count, Vec::new())
+        }
+    }
+}

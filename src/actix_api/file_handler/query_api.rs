@@ -1,6 +1,7 @@
 use super::{
     db_handler::tbl_contents_handler, error, extract_url_arg, get, web, Error, FileType, FromStr,
-    Grades, HttpRequest, HttpResponse, SearchParameters, SearchResponse, Subjects,
+    Grades, HttpRequest, HttpResponse, QueryPaginationParameters, SearchParameters, SearchResponse,
+    Subjects,
 };
 
 #[get("/public/api/query/{grade}/{subject}/{file_id}")]
@@ -126,8 +127,8 @@ pub async fn seatch_contents(
         None => 1,
     };
     let mut data_len = row_count / search_param.get_result_limit();
-    
-    if  (data_len * search_param.get_result_limit()) != row_count  {
+
+    if (data_len * search_param.get_result_limit()) != row_count {
         data_len = data_len + 1;
     }
 
@@ -137,4 +138,104 @@ pub async fn seatch_contents(
 #[get("/public/api/query")]
 pub async fn query_all() -> Result<HttpResponse, Error> {
     Ok(HttpResponse::Ok().json(tbl_contents_handler::query_all_from_tbl_contents()))
+}
+
+#[get("/public/api/query/{grade}/{subject}/pagination")]
+pub async fn query_by_grade_subject_pagination(
+    req: HttpRequest,
+    query_param: web::Query<QueryPaginationParameters>,
+) -> Result<HttpResponse, Error> {
+    let grade = match Grades::from_str(&extract_url_arg(
+        &req,
+        "grade",
+        String::from("Check if Grade URL Arg is valid"),
+    )?) {
+        Ok(subjects) => Ok(subjects),
+        Err(err) => Err(error::ErrorInternalServerError(err)),
+    }?
+    .to_string();
+
+    let subject = match Subjects::from_str(&extract_url_arg(
+        &req,
+        "subject",
+        String::from("Check if Subject URL Arg is valid"),
+    )?) {
+        Ok(subjects) => Ok(subjects),
+        Err(err) => Err(error::ErrorInternalServerError(err)),
+    }?
+    .to_string();
+
+    let (row_count, db_query_result) =
+        tbl_contents_handler::query_from_tbl_contents_with_grade_subject_pagination(
+            &grade,
+            &subject,
+            &query_param.get_result_limit(),
+            query_param.get_page_number(),
+        );
+    let page_number = match query_param.page_number {
+        Some(t) => t,
+        None => 1,
+    };
+    let mut data_len = row_count / query_param.get_result_limit();
+
+    if (data_len * query_param.get_result_limit()) != row_count {
+        data_len = data_len + 1;
+    }
+
+    Ok(HttpResponse::Ok().json(SearchResponse::new(data_len, page_number, db_query_result)))
+}
+
+#[get("/public/api/query/{grade}/pagination")]
+pub async fn query_by_grade_pagination(
+    req: HttpRequest,
+    query_param: web::Query<QueryPaginationParameters>,
+) -> Result<HttpResponse, Error> {
+    let grade = match Grades::from_str(&extract_url_arg(
+        &req,
+        "grade",
+        String::from("Check if Grade URL Arg is valid"),
+    )?) {
+        Ok(subjects) => Ok(subjects),
+        Err(err) => Err(error::ErrorInternalServerError(err)),
+    }?
+    .to_string();
+
+    let (row_count, db_query_result) =
+        tbl_contents_handler::query_from_tbl_contents_with_grade_pagination(
+            &grade,
+            &query_param.get_result_limit(),
+            query_param.get_page_number(),
+        );
+    let page_number = match query_param.page_number {
+        Some(t) => t,
+        None => 1,
+    };
+    let mut data_len = row_count / query_param.get_result_limit();
+
+    if (data_len * query_param.get_result_limit()) != row_count {
+        data_len = data_len + 1;
+    }
+
+    Ok(HttpResponse::Ok().json(SearchResponse::new(data_len, page_number, db_query_result)))
+}
+
+#[get("/public/api/query/pagination")]
+pub async fn query_all_pagination(
+    query_param: web::Query<QueryPaginationParameters>,
+) -> Result<HttpResponse, Error> {
+    let (row_count, db_query_result) = tbl_contents_handler::query_all_from_tbl_contents_pagination(
+        &query_param.get_result_limit(),
+        query_param.get_page_number(),
+    );
+    let page_number = match query_param.page_number {
+        Some(t) => t,
+        None => 1,
+    };
+    let mut data_len = row_count / query_param.get_result_limit();
+
+    if (data_len * query_param.get_result_limit()) != row_count {
+        data_len = data_len + 1;
+    }
+
+    Ok(HttpResponse::Ok().json(SearchResponse::new(data_len, page_number, db_query_result)))
 }

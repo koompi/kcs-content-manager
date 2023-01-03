@@ -23,6 +23,21 @@ impl SearchParameters {
     }
 }
 
+#[derive(Deserialize)]
+pub struct QueryPaginationParameters {
+    result_limit: u32,
+    page_number: Option<u32>,
+}
+
+impl QueryPaginationParameters {
+    pub fn get_result_limit(&self) -> &u32 {
+        &self.result_limit
+    }
+    pub fn get_page_number(&self) -> Option<u32> {
+        self.page_number
+    }
+}
+
 #[derive(Debug, PartialEq, Serialize)]
 pub enum FileType {
     PDF,
