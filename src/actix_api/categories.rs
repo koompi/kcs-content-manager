@@ -104,8 +104,6 @@ pub enum Subjects {
 impl Subjects {
     pub fn get_basic_iter() -> Iter<'static, Subjects> {
         static SUBJECTS: [Subjects; 15] = [
-            self::Subjects::FlashCard,
-            self::Subjects::EnglishLang,
             self::Subjects::KhmerLang,
             self::Subjects::KavetLang,
             self::Subjects::FrenchLang,
@@ -113,7 +111,9 @@ impl Subjects {
             self::Subjects::TompounLang,
             self::Subjects::KreungLang,
             self::Subjects::ProvLang,
+            self::Subjects::EnglishLang,
             self::Subjects::TeachingGuide,
+            self::Subjects::FlashCard,
             self::Subjects::MindMotion,
             self::Subjects::PreMath,
             self::Subjects::PreWriting,
@@ -145,8 +145,6 @@ impl Subjects {
 
     pub fn iterator() -> Iter<'static, Subjects> {
         static SUBJECTS: [Subjects; 20] = [
-            self::Subjects::TeachingGuide,
-            self::Subjects::EnglishLang,
             self::Subjects::KhmerLang,
             self::Subjects::KavetLang,
             self::Subjects::FrenchLang,
@@ -154,6 +152,9 @@ impl Subjects {
             self::Subjects::TompounLang,
             self::Subjects::KreungLang,
             self::Subjects::ProvLang,
+            self::Subjects::EnglishLang,
+            self::Subjects::TeachingGuide,
+
             self::Subjects::FlashCard,
             self::Subjects::MindMotion,
             self::Subjects::PreMath,
