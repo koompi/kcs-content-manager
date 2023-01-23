@@ -51,25 +51,23 @@ async fn main() -> std::io::Result<()> {
                     .allow_any_origin()
                     .supports_credentials(),
             )
-            // non-pagination to be deprecated
-            .service(actix_api::file_handler::query_api::query_all)
-            .service(actix_api::file_handler::query_api::query_by_grade)
-            .service(actix_api::file_handler::query_api::query_by_grade_subject)
-            .service(actix_api::admins_handler::query_admin::query_all_admin)
-            // production API
             .service(actix_api::categories::get_sidebar)
             .service(actix_api::file_handler::upload_api::upload)
             .service(actix_api::file_handler::delete_api::delete)
             .service(actix_api::file_handler::delete_api::delete_by_id)
+            .service(actix_api::file_handler::query_api::query_all) // non-pagination 
             .service(actix_api::file_handler::query_api::query_all_pagination)
+            .service(actix_api::file_handler::query_api::query_by_grade) // non-pagination 
             .service(actix_api::file_handler::query_api::query_by_grade_pagination)
+            .service(actix_api::file_handler::query_api::query_by_grade_subject) // non-pagination 
             .service(actix_api::file_handler::query_api::query_by_grade_subject_pagination)
             .service(actix_api::file_handler::query_api::query_by_grade_subject_filename)
-            .service(actix_api::file_handler::query_api::seatch_contents)
+            .service(actix_api::file_handler::query_api::search_contents)
             .service(actix_api::admins_handler::login_api::login)
             .service(actix_api::admins_handler::add_admin::add_admin)
             .service(actix_api::admins_handler::delete_admin::delete_admin)
             .service(actix_api::admins_handler::edit_admin::edit_admin)
+            .service(actix_api::admins_handler::query_admin::query_all_admin) // non-pagination
             .service(actix_api::admins_handler::query_admin::query_all_admin_pagination)
             .service(actix_api::admins_handler::query_admin::query_admin_by_id)
             .service(actix_api::admins_handler::query_admin::search_admin)

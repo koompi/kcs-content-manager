@@ -85,7 +85,7 @@ pub async fn query_by_grade(req: HttpRequest) -> Result<HttpResponse, Error> {
 }
 
 #[get("/public/api/search")]
-pub async fn seatch_contents(
+pub async fn search_contents(
     search_param: web::Query<SearchParameters>,
 ) -> Result<HttpResponse, Error> {
     let search_string = search_param.get_search_string();
