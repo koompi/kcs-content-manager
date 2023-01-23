@@ -37,44 +37,105 @@ struct SideBarSubCategory {
 impl SideBarSubCategory {
     pub fn new(grade: Grades) -> Vec<Self> {
         if grade == Grades::FolkLore {
-            Subjects::get_lang_iter().map(|each| {
-                let subcategory_id = each.to_string();
-                let subcategory_display_name = Subjects::get_kh(each.to_owned());
-                SideBarSubCategory {
-                    subcategory_id,
-                    subcategory_display_name,
-                }
-            }).collect()
+            Subjects::get_lang_iter()
+                .map(|each| {
+                    let subcategory_id = each.to_string();
+                    let subcategory_display_name = Subjects::get_kh(each.to_owned());
+                    SideBarSubCategory {
+                        subcategory_id,
+                        subcategory_display_name,
+                    }
+                })
+                .collect()
         } else if grade == Grades::Help {
-            Subjects::get_help_iter().map(|each| {
-                let subcategory_id = each.to_string();
-                let subcategory_display_name = Subjects::get_kh(each.to_owned());
-                SideBarSubCategory {
-                    subcategory_id,
-                    subcategory_display_name,
-                }
-            }).collect()
+            Subjects::get_help_iter()
+                .map(|each| {
+                    let subcategory_id = each.to_string();
+                    let subcategory_display_name = Subjects::get_kh(each.to_owned());
+                    SideBarSubCategory {
+                        subcategory_id,
+                        subcategory_display_name,
+                    }
+                })
+                .collect()
         } else if grade == Grades::Grade1 || grade == Grades::Grade2 || grade == Grades::Grade3 {
-            Subjects::get_basic_iter().map(|each| {
-                let subcategory_id = each.to_string();
-                let subcategory_display_name = Subjects::get_kh(each.to_owned());
-                SideBarSubCategory {
-                    subcategory_id,
-                    subcategory_display_name,
-                }
-            }).collect()
+            Subjects::get_basic_iter()
+                .map(|each| {
+                    let subcategory_id = each.to_string();
+                    let subcategory_display_name = Subjects::get_kh(each.to_owned());
+                    SideBarSubCategory {
+                        subcategory_id,
+                        subcategory_display_name,
+                    }
+                })
+                .collect()
         } else {
-            Subjects::iterator().map(|each| {
-                let subcategory_id = each.to_string();
-                let subcategory_display_name = Subjects::get_kh(each.to_owned());
-                SideBarSubCategory {
-                    subcategory_id,
-                    subcategory_display_name,
-                }
-            }).collect()
+            Subjects::iterator()
+                .map(|each| {
+                    let subcategory_id = each.to_string();
+                    let subcategory_display_name = Subjects::get_kh(each.to_owned());
+                    SideBarSubCategory {
+                        subcategory_id,
+                        subcategory_display_name,
+                    }
+                })
+                .collect()
         }
     }
 }
+
+static BASIC_SUBJECTS: [Subjects; 15] = [
+    self::Subjects::KhmerLang,
+    self::Subjects::KavetLang,
+    self::Subjects::PnorngLang,
+    self::Subjects::TompounLang,
+    self::Subjects::KreungLang,
+    self::Subjects::ProvLang,
+    self::Subjects::FrenchLang,
+    self::Subjects::EnglishLang,
+    self::Subjects::TeachingGuide,
+    self::Subjects::FlashCard,
+    self::Subjects::MindMotion,
+    self::Subjects::PreMath,
+    self::Subjects::PreWriting,
+    self::Subjects::Art,
+    self::Subjects::PE,
+];
+
+static LANG_SUBJECTS: [Subjects; 9] = [
+    self::Subjects::KhmerLang,
+    self::Subjects::KavetLang,
+    self::Subjects::PnorngLang,
+    self::Subjects::TompounLang,
+    self::Subjects::KreungLang,
+    self::Subjects::ProvLang,
+    self::Subjects::EnglishLang,
+    self::Subjects::FrenchLang,
+    self::Subjects::TeachingGuide,
+];
+
+static FULL_SUBJECTS: [Subjects; 20] = [
+    self::Subjects::KhmerLang,
+    self::Subjects::KavetLang,
+    self::Subjects::PnorngLang,
+    self::Subjects::TompounLang,
+    self::Subjects::KreungLang,
+    self::Subjects::ProvLang,
+    self::Subjects::EnglishLang,
+    self::Subjects::FrenchLang,
+    self::Subjects::TeachingGuide,
+    self::Subjects::FlashCard,
+    self::Subjects::MindMotion,
+    self::Subjects::PreMath,
+    self::Subjects::PreWriting,
+    self::Subjects::Science,
+    self::Subjects::Social,
+    self::Subjects::Art,
+    self::Subjects::PE,
+    self::Subjects::ICT,
+    self::Subjects::BasicPL,
+    self::Subjects::Help,
+];
 
 #[derive(Debug, Clone, Copy, Serialize)]
 pub enum Subjects {
@@ -103,39 +164,11 @@ pub enum Subjects {
 
 impl Subjects {
     pub fn get_basic_iter() -> Iter<'static, Subjects> {
-        static SUBJECTS: [Subjects; 15] = [
-            self::Subjects::KhmerLang,
-            self::Subjects::KavetLang,
-            self::Subjects::FrenchLang,
-            self::Subjects::PnorngLang,
-            self::Subjects::TompounLang,
-            self::Subjects::KreungLang,
-            self::Subjects::ProvLang,
-            self::Subjects::EnglishLang,
-            self::Subjects::TeachingGuide,
-            self::Subjects::FlashCard,
-            self::Subjects::MindMotion,
-            self::Subjects::PreMath,
-            self::Subjects::PreWriting,
-            self::Subjects::Art,
-            self::Subjects::PE,
-        ];
-        SUBJECTS.iter()
+        BASIC_SUBJECTS.iter()
     }
 
     pub fn get_lang_iter() -> Iter<'static, Subjects> {
-        static SUBJECTS: [Subjects; 9] = [
-            self::Subjects::EnglishLang,
-            self::Subjects::KhmerLang,
-            self::Subjects::KavetLang,
-            self::Subjects::FrenchLang,
-            self::Subjects::PnorngLang,
-            self::Subjects::TompounLang,
-            self::Subjects::KreungLang,
-            self::Subjects::ProvLang,
-            self::Subjects::TeachingGuide,
-        ];
-        SUBJECTS.iter()
+        LANG_SUBJECTS.iter()
     }
 
     pub fn get_help_iter() -> Iter<'static, Subjects> {
@@ -144,30 +177,7 @@ impl Subjects {
     }
 
     pub fn iterator() -> Iter<'static, Subjects> {
-        static SUBJECTS: [Subjects; 20] = [
-            self::Subjects::KhmerLang,
-            self::Subjects::KavetLang,
-            self::Subjects::FrenchLang,
-            self::Subjects::PnorngLang,
-            self::Subjects::TompounLang,
-            self::Subjects::KreungLang,
-            self::Subjects::ProvLang,
-            self::Subjects::EnglishLang,
-            self::Subjects::TeachingGuide,
-
-            self::Subjects::FlashCard,
-            self::Subjects::MindMotion,
-            self::Subjects::PreMath,
-            self::Subjects::PreWriting,
-            self::Subjects::Science,
-            self::Subjects::Social,
-            self::Subjects::Art,
-            self::Subjects::PE,
-            self::Subjects::ICT,
-            self::Subjects::BasicPL,
-            self::Subjects::Help,
-        ];
-        SUBJECTS.iter()
+        FULL_SUBJECTS.iter()
     }
 
     pub fn get_kh(subject: Self) -> String {
@@ -311,6 +321,17 @@ impl fmt::Display for Subjects {
     }
 }
 
+static GRADES: [Grades; 8] = [
+    self::Grades::Grade1,
+    self::Grades::Grade2,
+    self::Grades::Grade3,
+    self::Grades::Grade4,
+    self::Grades::Grade5,
+    self::Grades::Grade6,
+    self::Grades::FolkLore,
+    self::Grades::Help,
+];
+
 #[derive(Debug, Clone, Copy, Serialize, PartialEq)]
 pub enum Grades {
     Grade1,
@@ -354,16 +375,6 @@ impl Grades {
     }
 
     pub fn iterator() -> Iter<'static, Grades> {
-        static GRADES: [Grades; 8] = [
-            self::Grades::Grade1,
-            self::Grades::Grade2,
-            self::Grades::Grade3,
-            self::Grades::Grade4,
-            self::Grades::Grade5,
-            self::Grades::Grade6,
-            self::Grades::FolkLore,
-            self::Grades::Help,
-        ];
         GRADES.iter()
     }
 }
